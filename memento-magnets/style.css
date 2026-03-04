@@ -1,0 +1,383 @@
+/*
+Theme Name: Memento Magnets
+Theme URI: https://mementomagnets.co.nz
+Author: Memento Magnets
+Author URI: https://mementomagnets.co.nz
+Description: A personalised fridge magnet business theme for New Zealand and Australia. Pink/gold gradient design with WooCommerce support.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 8.0
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: memento-magnets
+Tags: e-commerce, woocommerce, custom-colors, custom-logo, custom-menu, featured-images, footer-widgets, full-width-template, theme-options, threaded-comments, translation-ready
+*/
+
+/* ============================================================
+   CSS CUSTOM PROPERTIES
+   ============================================================ */
+:root {
+    /* Brand Colors */
+    --color-hot-pink: #FF5FA0;
+    --color-warm-gold: #FFD54F;
+    --color-coral: #FF8C6E;
+    --color-lilac: #C97EC4;
+    --color-charcoal: #1A1A1A;
+    --color-cream: #FFF0E6;
+    --color-white: #FFFFFF;
+    --color-light-grey: #F8F4F2;
+    --color-mid-grey: #9B8E8A;
+    --color-dark-grey: #4A3F3C;
+
+    /* Gradients */
+    --gradient-brand: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%);
+    --gradient-hero: linear-gradient(135deg, #FF5FA0 0%, #C97EC4 50%, #FFD54F 100%);
+    --gradient-subtle: linear-gradient(135deg, #FFF0E6 0%, #FFF8F0 100%);
+    --gradient-card: linear-gradient(180deg, rgba(255,95,160,0.05) 0%, rgba(255,213,79,0.05) 100%);
+
+    /* Typography */
+    --font-heading: 'Big Shoulders Display', 'Arial Black', sans-serif;
+    --font-body: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
+    --font-accent: 'Nothing You Could Do', cursive;
+
+    /* Font Sizes */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+    --text-6xl: 3.75rem;
+    --text-7xl: 4.5rem;
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-2xl: 28px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(26,26,26,0.08), 0 1px 2px rgba(26,26,26,0.06);
+    --shadow-md: 0 4px 12px rgba(26,26,26,0.10), 0 2px 6px rgba(26,26,26,0.08);
+    --shadow-lg: 0 10px 30px rgba(26,26,26,0.12), 0 4px 12px rgba(26,26,26,0.08);
+    --shadow-pink: 0 8px 24px rgba(255,95,160,0.25);
+    --shadow-gold: 0 8px 24px rgba(255,213,79,0.25);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* Layout */
+    --container-max: 1200px;
+    --container-wide: 1400px;
+    --header-height: 72px;
+}
+
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--color-charcoal);
+    background-color: var(--color-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    color: var(--color-hot-pink);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-coral);
+}
+
+ul, ol {
+    list-style: none;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-charcoal);
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--text-5xl); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); }
+h5 { font-size: var(--text-xl); }
+h6 { font-size: var(--text-lg); }
+
+p {
+    margin-bottom: var(--space-4);
+    color: var(--color-dark-grey);
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+.container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+.container--wide {
+    max-width: var(--container-wide);
+}
+
+.site-main {
+    min-height: 60vh;
+    padding-top: calc(var(--header-height) + var(--announcement-height));
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-8);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: 1;
+    border-radius: var(--radius-full);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn--primary {
+    background: var(--gradient-brand);
+    color: var(--color-white);
+    box-shadow: var(--shadow-pink);
+}
+
+.btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(255,95,160,0.35);
+    color: var(--color-white);
+}
+
+.btn--secondary {
+    background: var(--color-white);
+    color: var(--color-hot-pink);
+    border-color: var(--color-hot-pink);
+}
+
+.btn--secondary:hover {
+    background: var(--color-hot-pink);
+    color: var(--color-white);
+    transform: translateY(-2px);
+}
+
+.btn--outline-white {
+    background: transparent;
+    color: var(--color-white);
+    border-color: var(--color-white);
+}
+
+.btn--outline-white:hover {
+    background: var(--color-white);
+    color: var(--color-hot-pink);
+}
+
+.btn--lg {
+    padding: var(--space-4) var(--space-10);
+    font-size: var(--text-lg);
+}
+
+/* ============================================================
+   SECTION STYLES
+   ============================================================ */
+.section {
+    padding: var(--space-20) 0;
+}
+
+.section--alt {
+    background-color: var(--color-light-grey);
+}
+
+.section--cream {
+    background-color: var(--color-cream);
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: var(--space-12);
+}
+
+.section-heading h2 {
+    font-size: var(--text-4xl);
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-3);
+}
+
+.section-heading p {
+    font-size: var(--text-lg);
+    color: var(--color-mid-grey);
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+/* Sparkle decorators */
+.section-heading h2::before {
+    content: '✦ ';
+    font-style: normal;
+    -webkit-text-fill-color: var(--color-warm-gold);
+}
+
+.section-heading h2::after {
+    content: ' ✦';
+    font-style: normal;
+    -webkit-text-fill-color: var(--color-warm-gold);
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-charcoal);
+    background: var(--color-white);
+    border: 2px solid #E8E0DC;
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--color-hot-pink);
+    box-shadow: 0 0 0 3px rgba(255,95,160,0.15);
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+@media (max-width: 1024px) {
+    h1 { font-size: var(--text-4xl); }
+    h2 { font-size: var(--text-3xl); }
+    .section { padding: var(--space-16) 0; }
+}
+
+@media (max-width: 768px) {
+    :root { --header-height: 64px; }
+    h1 { font-size: var(--text-3xl); }
+    h2 { font-size: var(--text-2xl); }
+    .section { padding: var(--space-12) 0; }
+    .container { padding: 0 var(--space-4); }
+    .section-heading h2 { font-size: var(--text-2xl); }
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: var(--text-2xl); }
+    .btn--lg { padding: var(--space-3) var(--space-6); font-size: var(--text-base); }
+}
