@@ -76,6 +76,19 @@
     padding: 0 var(--space-6);
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
 /* Logo */
 .site-logo {
     display: flex;
@@ -106,9 +119,10 @@
 
 /* Primary Nav */
 .primary-nav {
+    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .nav-list {
@@ -195,6 +209,11 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
+}
+
+/* Account icon — active state when logged in */
+.nav-icon-btn.is-logged-in {
+    color: var(--color-hot-pink);
 }
 
 /* Hamburger */

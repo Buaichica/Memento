@@ -13,6 +13,21 @@ define( 'MEMENTO_VERSION', '1.0.0' );
 define( 'MEMENTO_DIR', get_template_directory() );
 define( 'MEMENTO_URI', get_template_directory_uri() );
 
+// Register Custom Magnets as a selectable page template (bypasses WordPress file-scan cache).
+add_filter( 'theme_page_templates', function ( $templates ) {
+    $templates['page-custom-magnets.php'] = __( 'Custom Magnets', 'memento-magnets' );
+    return $templates;
+} );
+
+// Assign Custom Magnets template to page ID 16 (runs once).
+add_action( 'init', function () {
+    if ( get_post_meta( 16, '_memento_template_assigned', true ) ) {
+        return;
+    }
+    update_post_meta( 16, '_page_template', 'page-custom-magnets.php' );
+    update_post_meta( 16, '_memento_template_assigned', '1' );
+} );
+
 // ============================================================
 // THEME SETUP
 // ============================================================
@@ -167,6 +182,29 @@ function memento_register_sidebars() {
 }
 add_action( 'widgets_init', 'memento_register_sidebars' );
 
+// Remove default WordPress widgets that clutter sidebars (Pages, Archives, Categories, etc.)
+add_action( 'widgets_init', function () {
+    unregister_widget( 'WP_Widget_Pages' );
+    unregister_widget( 'WP_Widget_Archives' );
+    unregister_widget( 'WP_Widget_Categories' );
+    unregister_widget( 'WP_Widget_Meta' );
+    unregister_widget( 'WP_Widget_Recent_Posts' );
+    unregister_widget( 'WP_Widget_Recent_Comments' );
+    unregister_widget( 'WP_Widget_RSS' );
+    unregister_widget( 'WP_Widget_Tag_Cloud' );
+    unregister_widget( 'WP_Widget_Calendar' );
+}, 20 );
+
+// Clear any persisted junk widget instances from the sidebar-shop area in the DB.
+// Runs once on any admin page load; harmless after the area is already empty.
+add_action( 'admin_init', function () {
+    $sidebars = get_option( 'sidebars_widgets', [] );
+    if ( ! empty( $sidebars['sidebar-shop'] ) ) {
+        $sidebars['sidebar-shop'] = [];
+        update_option( 'sidebars_widgets', $sidebars );
+    }
+} );
+
 // ============================================================
 // SEO & META HELPERS
 // ============================================================
@@ -245,7 +283,822 @@ if ( class_exists( 'WooCommerce' ) ) {
 
     // Show WooCommerce breadcrumbs
     add_action( 'memento_before_content', 'woocommerce_breadcrumb', 20 );
+
+    // Remove "100 in stock" availability text on single product pages.
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_availability', 30 );
+
+    // Hide archive title, result count, and sorting dropdown on shop/category pages.
+    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_orderby', 30 );
+    add_filter( 'woocommerce_page_title', '__return_empty_string' );
+
+    // Loop: change "Add to cart" → "Upload Now" and link to product page.
+    add_filter( 'woocommerce_loop_add_to_cart_link', function ( $html, $product ) {
+        return sprintf(
+            '<a href="%s" class="button">%s</a>',
+            esc_url( $product->get_permalink() ),
+            esc_html__( 'Upload Now', 'memento-magnets' )
+        );
+    }, 10, 2 );
+
+    // Single product: change "Add to cart" button label.
+    add_filter( 'woocommerce_product_single_add_to_cart_text', function () {
+        return __( 'Add to Cart', 'memento-magnets' );
+    } );
+
+    // Breadcrumb: replace "Uncategorized" with "Products".
+    add_filter( 'woocommerce_get_breadcrumb', function ( $crumbs ) {
+        foreach ( $crumbs as &$crumb ) {
+            if ( isset( $crumb[0] ) && strtolower( $crumb[0] ) === 'uncategorized' ) {
+                $crumb[0] = __( 'Products', 'memento-magnets' );
+            }
+        }
+        return $crumbs;
+    } );
+
+    // Remove duplicate "Description" H2 heading inside the Description tab.
+    add_filter( 'woocommerce_product_description_heading', '__return_empty_string' );
+
+    // Remove Reviews tab and star rating from product pages.
+    add_filter( 'woocommerce_product_tabs', function ( $tabs ) {
+        unset( $tabs['reviews'] );
+        return $tabs;
+    } );
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10 );
+    add_filter( 'woocommerce_review_rating_html',  '__return_empty_string' );
+    add_filter( 'comments_open', function ( $open, $post_id ) {
+        if ( $post_id && get_post_type( $post_id ) === 'product' ) return false;
+        return $open;
+    }, 10, 2 );
+
+    // Remove SKU / Category / Brand meta block.
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
 }
+
+// Inject shop/archive page styles inline.
+add_action( 'wp_head', function () {
+    if ( ! is_shop() && ! is_product_category() && ! is_product_tag() ) return;
+    ?>
+    <style id="memento-shop-critical">
+    /* ── Hide title, count, sorting ── */
+    .woocommerce-products-header,
+    .woocommerce-products-header__title,
+    .woocommerce-result-count,
+    .woocommerce-ordering { display: none !important; }
+
+    /* ── Page wrapper breathing room ── */
+    .woocommerce-page .site-main,
+    body.woocommerce .site-main { padding-bottom: 4rem; }
+
+    /* ── Product grid ── */
+    .woocommerce ul.products {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1.75rem !important;
+        list-style: none !important;
+        padding: 2rem 0 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ── Product card ── */
+    .woocommerce ul.products li.product {
+        background: #fff !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 12px rgba(26,26,26,.07), 0 1px 3px rgba(26,26,26,.05) !important;
+        transition: transform .25s ease, box-shadow .25s ease !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+    }
+    .woocommerce ul.products li.product:hover {
+        transform: translateY(-6px) !important;
+        box-shadow: 0 12px 32px rgba(255,95,160,.22) !important;
+    }
+
+    /* ── Product image ── */
+    .woocommerce ul.products li.product a.woocommerce-loop-product__link img,
+    .woocommerce ul.products li.product img {
+        width: 100% !important;
+        aspect-ratio: 1 / 1 !important;
+        object-fit: cover !important;
+        border-radius: 0 !important;
+        display: block !important;
+        margin: 0 !important;
+    }
+    /* Placeholder image styling */
+    .woocommerce ul.products li.product .woocommerce-placeholder {
+        background: linear-gradient(135deg, #FFF0E6 0%, #FFF8F0 100%) !important;
+        padding: 2rem !important;
+        aspect-ratio: 1 / 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* ── Card body ── */
+    .woocommerce ul.products li.product .woocommerce-loop-product__title {
+        font-family: 'Big Shoulders Display', sans-serif !important;
+        font-size: 1.125rem !important;
+        font-weight: 700 !important;
+        color: #1A1A1A !important;
+        padding: 1rem 1.25rem .375rem !important;
+        margin: 0 !important;
+        line-height: 1.25 !important;
+    }
+
+    /* ── Price ── */
+    .woocommerce ul.products li.product .price {
+        display: block !important;
+        font-family: 'Big Shoulders Display', sans-serif !important;
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        padding: 0 1.25rem .875rem !important;
+        margin: 0 !important;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    /* ── Upload Now button ── */
+    .woocommerce ul.products li.product .button {
+        display: block !important;
+        margin: auto 1.25rem 1.25rem !important;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-size: .9375rem !important;
+        font-weight: 700 !important;
+        padding: .7rem 1.5rem !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        box-shadow: 0 6px 16px rgba(255,95,160,.28) !important;
+        transition: transform .25s ease, box-shadow .25s ease !important;
+        letter-spacing: .01em !important;
+    }
+    .woocommerce ul.products li.product .button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 24px rgba(255,95,160,.38) !important;
+        color: #fff !important;
+        -webkit-text-fill-color: #fff !important;
+    }
+
+    /* ── Sale badge ── */
+    .woocommerce ul.products li.product .onsale {
+        background: #FF5FA0 !important;
+        color: #fff !important;
+        border-radius: 9999px !important;
+        font-size: .75rem !important;
+        font-weight: 700 !important;
+        padding: .25rem .75rem !important;
+        top: .875rem !important;
+        left: .875rem !important;
+        min-height: unset !important;
+        min-width: unset !important;
+        line-height: 1.5 !important;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+        .woocommerce ul.products { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 480px) {
+        .woocommerce ul.products { grid-template-columns: 1fr !important; }
+    }
+    </style>
+    <?php
+}, 5 );
+
+// Inject critical single-product layout CSS inline so layout works even
+// before woocommerce.css is uploaded to the live server.
+add_action( 'wp_head', function () {
+    if ( ! is_product() ) return;
+    ?>
+    <style id="memento-product-critical">
+    /* Hide stock availability ("100 in stock") */
+    .single-product .stock,
+    .single-product p.stock,
+    .woocommerce-variation-availability { display: none !important; }
+    /* ── Two-column layout ── */
+    .single-product div.product {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 3rem !important;
+        align-items: start !important;
+        padding: 2rem 0 4rem !important;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .single-product .woocommerce-product-gallery { grid-column: 1; }
+    .single-product .summary                     { grid-column: 2; }
+    .woocommerce-tabs                            { grid-column: 1 / -1; }
+
+    /* ── Gallery ── */
+    .woocommerce-product-gallery__image,
+    .woocommerce-product-gallery .flex-viewport {
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(26,26,26,.10);
+    }
+    .flex-control-thumbs {
+        display: flex !important;
+        gap: .5rem;
+        margin-top: .75rem;
+        padding: 0;
+        list-style: none;
+    }
+    .flex-control-thumbs img {
+        width: 64px; height: 64px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+    .flex-control-thumbs img.flex-active,
+    .flex-control-thumbs img:hover { border-color: #FF5FA0; }
+
+    /* ── Summary typography ── */
+    .single-product .product_title {
+        font-family: 'Big Shoulders Display', sans-serif;
+        font-size: clamp(1.875rem, 4vw, 2.25rem);
+        font-weight: 900;
+        color: #1A1A1A;
+        line-height: 1.1;
+        margin-bottom: .5rem;
+    }
+    .single-product .price {
+        font-family: 'Big Shoulders Display', sans-serif;
+        font-size: 1.875rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: .25rem;
+    }
+
+    /* ── Quantity + add-to-cart ── */
+    .single-product form.cart {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin-top: .5rem;
+    }
+    .single-product form.cart .qty {
+        width: 68px;
+        padding: .6rem .75rem;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 600;
+        border: 2px solid #E8E0DC;
+        border-radius: 10px;
+        outline: none;
+        -moz-appearance: textfield;
+    }
+    .single-product form.cart .qty:focus { border-color: #FF5FA0; box-shadow: 0 0 0 3px rgba(255,95,160,.15); }
+    .single-product .single_add_to_cart_button {
+        flex: 1;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
+        color: #fff !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        padding: .75rem 2rem !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        cursor: pointer !important;
+        box-shadow: 0 8px 24px rgba(255,95,160,.25) !important;
+        transition: transform .25s ease, box-shadow .25s ease !important;
+    }
+    .single-product .single_add_to_cart_button:hover:not([disabled]) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 12px 32px rgba(255,95,160,.35) !important;
+    }
+    .single-product .single_add_to_cart_button.disabled,
+    .single-product .single_add_to_cart_button[disabled] {
+        opacity: .45 !important; cursor: not-allowed !important; transform: none !important;
+    }
+
+    /* ── Shipping note ── */
+    .memento-shipping-note {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .875rem;
+        font-weight: 500;
+        color: #9B8E8A;
+        background: #F8F4F2;
+        border-radius: 9999px;
+        padding: .4rem 1rem;
+        margin-bottom: 1rem;
+    }
+    .memento-shipping-note svg { flex-shrink: 0; color: #FF5FA0; }
+
+    /* ── Upload widget ── */
+    .memento-upload-widget {
+        background: #F8F4F2;
+        border: 2px dashed #E0D5D0;
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    .memento-upload-widget__header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        gap: 1rem; margin-bottom: .5rem; flex-wrap: wrap;
+    }
+    .memento-upload-widget__title {
+        font-family: 'Big Shoulders Display', sans-serif;
+        font-size: 1.125rem; font-weight: 700; color: #1A1A1A; margin: 0;
+    }
+    .upload-progress { display: flex; align-items: center; gap: .5rem; }
+    .upload-progress__bar {
+        width: 80px; height: 6px; background: #E0D5D0;
+        border-radius: 9999px; overflow: hidden;
+    }
+    .upload-progress__fill {
+        height: 100%;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%);
+        border-radius: 9999px; transition: width .25s ease;
+    }
+    .upload-progress__text { font-size: .8125rem; color: #9B8E8A; white-space: nowrap; }
+    .upload-progress__count { color: #FF5FA0; font-weight: 700; }
+    .memento-upload-widget__hint { font-size: .8125rem; color: #9B8E8A; margin-bottom: .75rem; line-height: 1.5; }
+    .memento-upload-widget__cta-note {
+        font-size: .8125rem; color: #FF8C6E;
+        text-align: center; margin: .5rem 0 0; font-weight: 500;
+    }
+    .memento-upload-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .625rem;
+        margin-bottom: .75rem;
+    }
+    .upload-slot { position: relative; aspect-ratio: 1 / 1; }
+    .upload-slot__inner {
+        position: relative; width: 100%; height: 100%;
+        border-radius: 10px; border: 2px dashed #D0C8C4;
+        background: #fff; overflow: hidden; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .upload-slot__inner:hover { border-color: #FF5FA0; box-shadow: 0 0 0 3px rgba(255,95,160,.1); }
+    .upload-slot.is-uploaded .upload-slot__inner { border-color: #FF5FA0; border-style: solid; }
+    .upload-slot__placeholder {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: .25rem; color: #C0B8B4; text-align: center; padding: .5rem;
+    }
+    .upload-slot__placeholder span { font-size: .6875rem; line-height: 1.2; }
+    .upload-slot__preview {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; border-radius: 8px;
+    }
+    .upload-slot__spinner {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,.7); z-index: 2;
+    }
+    .upload-slot__spinner-ring {
+        width: 26px; height: 26px;
+        border: 3px solid rgba(255,95,160,.2);
+        border-top-color: #FF5FA0;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .upload-slot__remove {
+        position: absolute; top: 4px; right: 4px; z-index: 3;
+        display: flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(26,26,26,.65); color: #fff;
+        border: none; cursor: pointer; font-size: 14px; line-height: 1;
+        transition: background .15s ease; padding: 0;
+    }
+    .upload-slot__remove:hover { background: #FF5FA0; }
+    .upload-slot__error {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: rgba(231,76,60,.9); color: #fff;
+        font-size: .6875rem; padding: .2rem .4rem;
+        text-align: center; z-index: 4;
+    }
+
+    /* ── Trust badges ── */
+    .memento-trust-badges {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: .625rem; margin-top: 1.25rem;
+        padding-top: 1.25rem; border-top: 1px solid #F0E8E4;
+    }
+    .trust-badge {
+        display: flex; align-items: center; gap: .5rem;
+        font-size: .875rem; font-weight: 500; color: #4A3F3C;
+    }
+    .trust-badge svg { flex-shrink: 0; color: #FF5FA0; }
+
+    /* ── Tabs ── */
+    .woocommerce-tabs ul.tabs {
+        display: flex; gap: 0; border-bottom: 2px solid #F0E8E4;
+        margin-bottom: 1.5rem; padding: 0; list-style: none;
+    }
+    .woocommerce-tabs ul.tabs li { border: none; background: none; border-radius: 0; margin: 0; padding: 0; }
+    .woocommerce-tabs ul.tabs li::before,
+    .woocommerce-tabs ul.tabs li::after { display: none; }
+    .woocommerce-tabs ul.tabs li a {
+        display: block; font-size: 1rem; font-weight: 600;
+        color: #9B8E8A; padding: .75rem 1.5rem;
+        border-bottom: 2px solid transparent; margin-bottom: -2px;
+        transition: color .15s, border-color .15s; text-decoration: none;
+    }
+    .woocommerce-tabs ul.tabs li.active a,
+    .woocommerce-tabs ul.tabs li a:hover { color: #1A1A1A; border-bottom-color: #FF5FA0; }
+
+    /* ── Sale badge ── */
+    .single-product .onsale {
+        background: #FF5FA0; color: #fff;
+        font-size: .8125rem; font-weight: 700;
+        border-radius: 9999px; padding: .2rem .75rem;
+        top: .75rem; left: .75rem;
+        min-height: unset; min-width: unset; line-height: 1.6;
+    }
+
+    /* ── Related products section ── */
+    .single-product .related,
+    .single-product .up-sells {
+        margin-top: 3rem !important;
+        padding-top: 2.5rem !important;
+        border-top: 1px solid #F0E8E4 !important;
+        grid-column: 1 / -1 !important;
+    }
+    .single-product .related > h2,
+    .single-product .up-sells > h2 {
+        font-family: 'Big Shoulders Display', sans-serif !important;
+        font-size: 1.75rem !important;
+        font-weight: 800 !important;
+        color: #1A1A1A !important;
+        margin-bottom: 1.5rem !important;
+    }
+    /* Related products grid — 4 equal columns with min width */
+    .single-product .related ul.products,
+    .single-product .up-sells ul.products {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    /* Related product cards */
+    .single-product .related ul.products li.product,
+    .single-product .up-sells ul.products li.product {
+        background: #fff !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 10px rgba(26,26,26,.08) !important;
+        transition: transform .25s ease, box-shadow .25s ease !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-width: 0 !important;
+    }
+    .single-product .related ul.products li.product:hover,
+    .single-product .up-sells ul.products li.product:hover {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 10px 24px rgba(255,95,160,.2) !important;
+    }
+    /* Image */
+    .single-product .related ul.products li.product img,
+    .single-product .up-sells ul.products li.product img {
+        width: 100% !important;
+        aspect-ratio: 1 / 1 !important;
+        object-fit: cover !important;
+        display: block !important;
+        margin: 0 !important;
+    }
+    /* Title */
+    .single-product .related ul.products li.product .woocommerce-loop-product__title,
+    .single-product .up-sells ul.products li.product .woocommerce-loop-product__title {
+        font-family: 'Big Shoulders Display', sans-serif !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        color: #1A1A1A !important;
+        padding: .875rem 1rem .375rem !important;
+        margin: 0 !important;
+        line-height: 1.3 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+    /* Price */
+    .single-product .related ul.products li.product .price,
+    .single-product .up-sells ul.products li.product .price {
+        display: block !important;
+        font-family: 'Big Shoulders Display', sans-serif !important;
+        font-size: 1.125rem !important;
+        font-weight: 800 !important;
+        padding: 0 1rem .75rem !important;
+        margin: 0 !important;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+    /* Button — contained within card */
+    .single-product .related ul.products li.product .button,
+    .single-product .up-sells ul.products li.product .button {
+        display: block !important;
+        width: auto !important;
+        margin: auto 1rem 1rem !important;
+        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-size: .8125rem !important;
+        font-weight: 700 !important;
+        padding: .6rem 1rem !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        box-shadow: 0 4px 12px rgba(255,95,160,.25) !important;
+        transition: transform .25s ease, box-shadow .25s ease !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+    }
+    .single-product .related ul.products li.product .button:hover,
+    .single-product .up-sells ul.products li.product .button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(255,95,160,.35) !important;
+        color: #fff !important;
+        -webkit-text-fill-color: #fff !important;
+    }
+
+    /* ── Mobile stack ── */
+    @media (max-width: 768px) {
+        .single-product div.product {
+            grid-template-columns: 1fr !important;
+            gap: 1.5rem !important;
+            padding: 1.5rem 0 3rem !important;
+        }
+        .single-product .summary { grid-column: 1; }
+        .woocommerce-tabs { grid-column: 1; }
+        .single-product .related ul.products,
+        .single-product .up-sells ul.products {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+    @media (max-width: 480px) {
+        .single-product .related ul.products,
+        .single-product .up-sells ul.products {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+    </style>
+    <?php
+}, 5 );
+
+// ============================================================
+// SINGLE PRODUCT — PHOTO UPLOAD + TRUST BADGES
+// ============================================================
+
+// Enqueue upload JS only on single product pages.
+add_action( 'wp_enqueue_scripts', function () {
+    if ( ! is_product() ) return;
+    wp_enqueue_script(
+        'memento-product-upload',
+        MEMENTO_URI . '/assets/js/product-upload.js',
+        [],
+        MEMENTO_VERSION,
+        true
+    );
+    wp_localize_script( 'memento-product-upload', 'mementoUpload', [
+        'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+        'nonce'   => wp_create_nonce( 'memento_upload_photo' ),
+        'strings' => [
+            'photo'       => __( 'Photo', 'memento-magnets' ),
+            'uploadFail'  => __( 'Upload failed. Please try again.', 'memento-magnets' ),
+            'invalidType' => __( 'Please upload a JPG, PNG, or WebP image.', 'memento-magnets' ),
+            'tooLarge'    => __( 'File too large. Maximum 15MB.', 'memento-magnets' ),
+        ],
+    ] );
+} );
+
+// Helper: detect photo count from product meta or title.
+function memento_get_photo_count( $product ) {
+    $count = (int) get_post_meta( $product->get_id(), '_memento_photo_count', true );
+    if ( ! $count && preg_match( '/\b(12|9|6|3)\b/', $product->get_name(), $m ) ) {
+        $count = (int) $m[1];
+    }
+    return $count ?: 3;
+}
+
+
+// Priority 28 — Photo upload widget (between excerpt at 25 and add-to-cart at 30).
+add_action( 'woocommerce_single_product_summary', function () {
+    global $product;
+    $photo_count = memento_get_photo_count( $product );
+    ?>
+    <div class="memento-upload-widget" data-photo-count="<?php echo esc_attr( $photo_count ); ?>">
+
+        <div class="memento-upload-widget__header">
+            <h4 class="memento-upload-widget__title">
+                <?php printf(
+                    /* translators: %d: number of photos */
+                    _n( 'Upload Your Photo (%d)', 'Upload Your %d Photos', $photo_count, 'memento-magnets' ),
+                    $photo_count
+                ); ?>
+            </h4>
+            <div class="upload-progress">
+                <div class="upload-progress__bar">
+                    <div class="upload-progress__fill" style="width:0%"></div>
+                </div>
+                <span class="upload-progress__text">
+                    <strong class="upload-progress__count">0</strong> / <?php echo esc_html( $photo_count ); ?>
+                </span>
+            </div>
+        </div>
+
+        <p class="memento-upload-widget__hint">
+            <?php _e( 'Click each square to upload a photo. For best print quality use at least 500&times;500px.', 'memento-magnets' ); ?>
+        </p>
+
+        <div class="memento-upload-grid"></div>
+
+        <input type="hidden" name="memento_photos" class="memento-photos-input" value="">
+
+        <p class="memento-upload-widget__cta-note js-upload-cta-note">
+            <?php printf(
+                /* translators: %d: number of photos */
+                __( 'Upload all %d photos to enable &ldquo;Add to Cart&rdquo;', 'memento-magnets' ),
+                $photo_count
+            ); ?>
+        </p>
+
+    </div>
+    <?php
+}, 28 );
+
+// Priority 35 — Trust badges (after add-to-cart at 30).
+add_action( 'woocommerce_single_product_summary', function () {
+    $badges = [
+        [
+            'icon' => '<path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+            'label' => __( 'Fast NZ Shipping', 'memento-magnets' ),
+        ],
+        [
+            'icon' => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+            'label' => __( '5cm × 5cm per magnet', 'memento-magnets' ),
+        ],
+        [
+            'icon' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+            'label' => __( 'Vibrant Gloss Print Finish', 'memento-magnets' ),
+        ],
+        [
+            'icon' => '<polyline points="20 6 9 17 4 12"/>',
+            'label' => __( 'Handcrafted in New Zealand', 'memento-magnets' ),
+        ],
+    ];
+    ?>
+    <div class="memento-trust-badges">
+        <?php foreach ( $badges as $b ) : ?>
+        <div class="trust-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?php echo $b['icon']; ?></svg>
+            <span><?php echo esc_html( $b['label'] ); ?></span>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php
+}, 35 );
+
+// Placeholder thumbnail strip — renders 3 image placeholders below the main product
+// image when the product has no real gallery images assigned. This gives a visual
+// carousel affordance and matches the existing .flex-control-thumbs strip styling.
+add_action( 'woocommerce_product_thumbnails', function () {
+    global $product;
+    if ( ! $product ) return;
+    if ( ! empty( $product->get_gallery_image_ids() ) ) return; // skip if real gallery exists
+    ?>
+    <div class="memento-thumb-placeholders" aria-hidden="true">
+        <?php for ( $i = 0; $i < 3; $i++ ) : ?>
+        <div class="memento-thumb-placeholder<?php echo $i === 0 ? ' is-first' : ''; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+            </svg>
+        </div>
+        <?php endfor; ?>
+    </div>
+    <?php
+}, 30 );
+
+// AJAX — Handle photo file upload.
+add_action( 'wp_ajax_memento_upload_photo',        'memento_handle_photo_upload' );
+add_action( 'wp_ajax_nopriv_memento_upload_photo', 'memento_handle_photo_upload' );
+
+function memento_handle_photo_upload() {
+    check_ajax_referer( 'memento_upload_photo', 'nonce' );
+
+    if ( empty( $_FILES['photo']['tmp_name'] ) ) {
+        wp_send_json_error( [ 'message' => __( 'No file received.', 'memento-magnets' ) ] );
+    }
+
+    $file = $_FILES['photo']; // phpcs:ignore
+
+    // Validate MIME via finfo (not extension).
+    $finfo        = new finfo( FILEINFO_MIME_TYPE );
+    $mime         = $finfo->file( $file['tmp_name'] );
+    $allowed_mime = [ 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ];
+
+    if ( ! in_array( $mime, $allowed_mime, true ) ) {
+        wp_send_json_error( [ 'message' => __( 'Please upload a JPG, PNG, or WebP image.', 'memento-magnets' ) ] );
+    }
+
+    if ( $file['size'] > 15 * 1024 * 1024 ) {
+        wp_send_json_error( [ 'message' => __( 'File too large. Maximum 15MB.', 'memento-magnets' ) ] );
+    }
+
+    $upload_dir = wp_upload_dir();
+    $target_dir = $upload_dir['basedir'] . '/memento-orders/' . gmdate( 'Y/m' );
+    wp_mkdir_p( $target_dir );
+
+    // Prevent directory listing.
+    $htaccess = $upload_dir['basedir'] . '/memento-orders/.htaccess';
+    if ( ! file_exists( $htaccess ) ) {
+        file_put_contents( $htaccess, "Options -Indexes\n" ); // phpcs:ignore
+    }
+
+    $ext_map  = [ 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif' ];
+    $ext      = $ext_map[ $mime ] ?? 'jpg';
+    $filename = wp_generate_uuid4() . '.' . $ext;
+    $target   = $target_dir . '/' . $filename;
+
+    if ( ! move_uploaded_file( $file['tmp_name'], $target ) ) {
+        wp_send_json_error( [ 'message' => __( 'Could not save file. Please try again.', 'memento-magnets' ) ] );
+    }
+
+    $url = $upload_dir['baseurl'] . '/memento-orders/' . gmdate( 'Y/m' ) . '/' . $filename;
+    wp_send_json_success( [ 'url' => $url ] );
+}
+
+// Cart — attach uploaded photo URLs to cart item.
+add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {
+    if ( ! empty( $_POST['memento_photos'] ) ) {
+        $raw    = sanitize_text_field( wp_unslash( $_POST['memento_photos'] ) );
+        $photos = json_decode( $raw, true );
+        if ( is_array( $photos ) ) {
+            $data['memento_photos'] = array_map( 'esc_url_raw', $photos );
+        }
+    }
+    return $data;
+}, 10, 2 );
+
+// Cart — show photo count in cart/checkout line items.
+add_filter( 'woocommerce_get_item_data', function ( $item_data, $cart_item ) {
+    if ( ! empty( $cart_item['memento_photos'] ) ) {
+        $count       = count( $cart_item['memento_photos'] );
+        $item_data[] = [
+            'key'   => __( 'Custom Photos', 'memento-magnets' ),
+            'value' => sprintf( _n( '%d photo uploaded', '%d photos uploaded', $count, 'memento-magnets' ), $count ),
+        ];
+    }
+    return $item_data;
+}, 10, 2 );
+
+// Order — persist photo URLs in order line item meta.
+add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $cart_item_key, $values ) {
+    if ( ! empty( $values['memento_photos'] ) ) {
+        $item->add_meta_data(
+            __( 'Customer Photos', 'memento-magnets' ),
+            implode( "\n", $values['memento_photos'] )
+        );
+    }
+}, 10, 3 );
+
+// Validation — block add-to-cart if photos are missing.
+add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_id ) {
+    $product     = wc_get_product( $product_id );
+    $photo_count = $product ? memento_get_photo_count( $product ) : 0;
+
+    if ( $photo_count && empty( $_POST['memento_photos'] ) ) {
+        wc_add_notice(
+            sprintf(
+                /* translators: %d: number of required photos */
+                __( 'Please upload all %d photos before adding to cart.', 'memento-magnets' ),
+                $photo_count
+            ),
+            'error'
+        );
+        return false;
+    }
+    return $passed;
+}, 10, 2 );
 
 // ============================================================
 // STRUCTURED DATA HELPERS
@@ -391,3 +1244,40 @@ function memento_get_search_form( $echo = false ) {
     }
     return $form;
 }
+
+// ============================================================
+// CUSTOMIZER — REMOVE DEFAULT WORDPRESS SECTIONS
+// ============================================================
+
+add_action( 'customize_register', function ( WP_Customize_Manager $wp_customize ) {
+    // Sections to remove
+    $sections = [
+        'static_front_page',  // Homepage Settings
+        'title_tagline',      // Site Identity (title/tagline — logo managed via theme option)
+        'colors',             // Colors
+        'background_image',   // Background Image
+        'nav_menus',          // Menus panel (registered separately below)
+        'widgets',            // Widgets
+        'custom_css',         // Additional CSS
+    ];
+    foreach ( $sections as $section ) {
+        $wp_customize->remove_section( $section );
+    }
+
+    // Remove the Menus panel entirely
+    $wp_customize->remove_panel( 'nav_menus' );
+
+    // Remove individual controls that may survive section removal
+    $controls = [
+        'blogname',
+        'blogdescription',
+        'header_textcolor',
+        'display_header_text',
+        'background_color',
+        'background_image',
+        'custom_css',
+    ];
+    foreach ( $controls as $control ) {
+        $wp_customize->remove_control( $control );
+    }
+}, 30 );
