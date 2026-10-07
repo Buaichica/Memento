@@ -4,20 +4,6 @@
  * All variables inherit from style.css :root.
  */
 
-/* ============================================================
-   PRODUCT PAGE BREADCRUMB BAR
-   ============================================================ */
-.product-breadcrumb-bar {
-    padding-top: var(--space-10);
-    padding-bottom: var(--space-4);
-    border-bottom: 1px solid #F0EBE8;
-}
-
-/* Override WooCommerce breadcrumb defaults inside the bar */
-.product-breadcrumb-bar .woocommerce-breadcrumb {
-    padding: 0;
-    margin-bottom: 0;
-}
 
 /* ============================================================
    SHIPPING NOTE
@@ -307,7 +293,7 @@
     font-family: var(--font-body);
     font-size: var(--text-sm);
     color: var(--color-mid-grey);
-    padding: var(--space-4) 0 0;
+    padding: var(--space-8) 0 0;
     margin-bottom: var(--space-6);
 }
 

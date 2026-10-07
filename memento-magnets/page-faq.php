@@ -18,11 +18,11 @@ $faq_groups = [
             ],
             [
                 'q' => __( 'What photo formats do you accept?', 'memento-magnets' ),
-                'a' => __( 'We accept JPG, PNG, and HEIC formats. For the best quality results, we recommend uploading a high-resolution image (at least 800x800 pixels). Avoid heavily cropped or digitally zoomed photos.', 'memento-magnets' ),
+                'a' => __( 'We accept JPG, PNG and WebP photos up to 15MB each. iPhone photos are converted to JPG automatically when you choose them on your phone. For the best print quality, use photos at least 600×600 pixels — we\'ll let you know if a photo looks too low-resolution. Avoid heavily cropped or digitally zoomed photos.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'Can I preview my magnet before ordering?', 'memento-magnets' ),
-                'a' => __( 'Yes! After uploading your photo, you\'ll see a preview of your magnet before adding it to cart. If you need adjustments, just re-upload an edited image.', 'memento-magnets' ),
+                'a' => __( 'Yes! After uploading, each photo shows as a square preview of your magnet. Tap Edit to crop, zoom, rotate or replace it — the dashed guide shows the print-safe area so faces and text aren\'t trimmed. You\'ll review all your photos before adding them to your cart.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'What payment methods do you accept?', 'memento-magnets' ),

@@ -29,58 +29,120 @@ get_header();
             <div class="contact-layout">
 
                 <!-- Contact Form -->
-                <div class="contact-form-wrap">
+                <div class="contact-form-wrap" id="contact-form">
                     <h2><?php _e( 'Send Us a Message', 'memento-magnets' ); ?></h2>
                     <p style="color:var(--color-mid-grey);margin-bottom:var(--space-6);">
                         <?php _e( 'Fill in the form below and we\'ll get back to you within 1 business day.', 'memento-magnets' ); ?>
                     </p>
 
-                    <?php if ( function_exists( 'wpcf7_contact_form' ) ) : ?>
-                        <?php
-                        // Contact Form 7 — replace "1" with your actual form ID
-                        echo do_shortcode( '[contact-form-7 id="1" title="Contact form"]' );
-                        ?>
+                    <?php
+                    $cf7_id = memento_contact_cf7_id();
+                    $state  = memento_contact_state();
+                    $errors = $state['errors'];
+                    $user   = wp_get_current_user();
+                    $val    = function ( $key ) use ( $state, $user ) {
+                        if ( isset( $state['values'][ $key ] ) ) {
+                            return $state['values'][ $key ];
+                        }
+                        // Prefill for logged-in customers.
+                        if ( 'name' === $key && $user->exists() ) {
+                            return trim( $user->first_name . ' ' . $user->last_name ) ?: $user->display_name;
+                        }
+                        if ( 'email' === $key && $user->exists() ) {
+                            return $user->user_email;
+                        }
+                        return '';
+                    };
+                    $field_error = function ( $key ) use ( $errors ) {
+                        if ( ! empty( $errors[ $key ] ) ) {
+                            echo '<p class="form-error" id="contact-' . esc_attr( $key ) . '-error">' . esc_html( $errors[ $key ] ) . '</p>';
+                        }
+                    };
+                    $invalid = function ( $key ) use ( $errors ) {
+                        if ( ! empty( $errors[ $key ] ) ) {
+                            echo ' aria-invalid="true" aria-describedby="contact-' . esc_attr( $key ) . '-error"';
+                        }
+                    };
+                    ?>
+
+                    <?php if ( $cf7_id ) : ?>
+                        <?php echo do_shortcode( '[contact-form-7 id="' . (int) $cf7_id . '"]' ); ?>
                     <?php else : ?>
-                        <!-- Native fallback form -->
-                        <form class="wpcf7-form native-contact-form" action="<?php echo esc_url( home_url( '/contact/' ) ); ?>" method="post">
+
+                        <?php if ( isset( $_GET['sent'] ) && ! $errors ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
+                            <div class="woocommerce-message contact-notice" role="status" tabindex="-1">
+                                <span><strong><?php _e( 'Thanks — your message is on its way!', 'memento-magnets' ); ?></strong>
+                                <?php _e( 'We\'ll reply by email within 1 business day.', 'memento-magnets' ); ?></span>
+                            </div>
+                        <?php elseif ( $errors ) : ?>
+                            <div class="woocommerce-error contact-notice" role="alert" tabindex="-1">
+                                <?php
+                                echo esc_html(
+                                    $errors['form'] ?? __( 'Please check the highlighted fields below.', 'memento-magnets' )
+                                );
+                                if ( $state['failed'] ) {
+                                    echo ' <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>';
+                                }
+                                ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <form class="wpcf7-form native-contact-form" action="<?php echo esc_url( get_permalink() ); ?>#contact-form" method="post" novalidate>
                             <?php wp_nonce_field( 'contact_form_submit', 'contact_nonce' ); ?>
 
-                            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-4);">
+                            <!-- Spam trap: hidden from people, bots fill it in -->
+                            <div class="contact-hp" aria-hidden="true">
+                                <label for="contact-website"><?php _e( 'Leave this field empty', 'memento-magnets' ); ?></label>
+                                <input type="text" id="contact-website" name="contact_website" tabindex="-1" autocomplete="off">
+                            </div>
+
+                            <div class="form-row">
                                 <div class="form-group">
                                     <label for="contact-name"><?php _e( 'Your Name *', 'memento-magnets' ); ?></label>
-                                    <input type="text" id="contact-name" name="contact_name" required placeholder="<?php esc_attr_e( 'Jane Smith', 'memento-magnets' ); ?>">
+                                    <input type="text" id="contact-name" name="contact_name" required maxlength="100" autocomplete="name"
+                                           value="<?php echo esc_attr( $val( 'name' ) ); ?>" placeholder="<?php esc_attr_e( 'Jane Smith', 'memento-magnets' ); ?>"<?php $invalid( 'name' ); ?>>
+                                    <?php $field_error( 'name' ); ?>
                                 </div>
                                 <div class="form-group">
                                     <label for="contact-email"><?php _e( 'Email Address *', 'memento-magnets' ); ?></label>
-                                    <input type="email" id="contact-email" name="contact_email" required placeholder="<?php esc_attr_e( 'jane@example.com', 'memento-magnets' ); ?>">
+                                    <input type="email" id="contact-email" name="contact_email" required autocomplete="email"
+                                           value="<?php echo esc_attr( $val( 'email' ) ); ?>" placeholder="<?php esc_attr_e( 'jane@example.com', 'memento-magnets' ); ?>"<?php $invalid( 'email' ); ?>>
+                                    <?php $field_error( 'email' ); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group" style="margin-bottom:var(--space-4);">
-                                <label for="contact-subject"><?php _e( 'Subject *', 'memento-magnets' ); ?></label>
-                                <select id="contact-subject" name="contact_subject" required>
-                                    <option value=""><?php _e( 'Select a topic…', 'memento-magnets' ); ?></option>
-                                    <option value="order"><?php _e( 'Order enquiry', 'memento-magnets' ); ?></option>
-                                    <option value="shipping"><?php _e( 'Shipping question', 'memento-magnets' ); ?></option>
-                                    <option value="return"><?php _e( 'Return / refund', 'memento-magnets' ); ?></option>
-                                    <option value="custom"><?php _e( 'Custom bulk order', 'memento-magnets' ); ?></option>
-                                    <option value="other"><?php _e( 'Other', 'memento-magnets' ); ?></option>
-                                </select>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contact-subject"><?php _e( 'Topic *', 'memento-magnets' ); ?></label>
+                                    <select id="contact-subject" name="contact_subject" required<?php $invalid( 'subject' ); ?>>
+                                        <option value=""><?php _e( 'Select a topic…', 'memento-magnets' ); ?></option>
+                                        <?php foreach ( memento_contact_subjects() as $key => $label ) : ?>
+                                            <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $val( 'subject' ), $key ); ?>><?php echo esc_html( $label ); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <?php $field_error( 'subject' ); ?>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contact-order"><?php _e( 'Order Number (if applicable)', 'memento-magnets' ); ?></label>
+                                    <input type="text" id="contact-order" name="contact_order" maxlength="40"
+                                           value="<?php echo esc_attr( $val( 'order' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. #12345', 'memento-magnets' ); ?>"<?php $invalid( 'order' ); ?>>
+                                    <?php $field_error( 'order' ); ?>
+                                </div>
                             </div>
 
-                            <div class="form-group" style="margin-bottom:var(--space-4);">
-                                <label for="contact-order"><?php _e( 'Order Number (if applicable)', 'memento-magnets' ); ?></label>
-                                <input type="text" id="contact-order" name="contact_order" placeholder="<?php esc_attr_e( 'e.g. #12345', 'memento-magnets' ); ?>">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom:var(--space-6);">
+                            <div class="form-group">
                                 <label for="contact-message"><?php _e( 'Message *', 'memento-magnets' ); ?></label>
-                                <textarea id="contact-message" name="contact_message" required placeholder="<?php esc_attr_e( 'Tell us how we can help…', 'memento-magnets' ); ?>" rows="6"></textarea>
+                                <textarea id="contact-message" name="contact_message" required minlength="10" maxlength="5000" rows="6"
+                                          placeholder="<?php esc_attr_e( 'Tell us how we can help…', 'memento-magnets' ); ?>"<?php $invalid( 'message' ); ?>><?php echo esc_textarea( $val( 'message' ) ); ?></textarea>
+                                <?php $field_error( 'message' ); ?>
                             </div>
 
                             <button type="submit" class="btn btn--primary btn--lg wpcf7-submit">
                                 <?php _e( 'Send Message', 'memento-magnets' ); ?>
                             </button>
+                            <p class="contact-privacy-note">
+                                <?php _e( 'We only use your details to reply to your message.', 'memento-magnets' ); ?>
+                            </p>
                         </form>
                     <?php endif; ?>
                 </div>

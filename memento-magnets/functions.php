@@ -82,6 +82,15 @@ add_action( 'after_setup_theme', 'memento_setup' );
 // ENQUEUE SCRIPTS & STYLES
 // ============================================================
 
+/**
+ * Asset version = theme version + file modification time, so browsers and
+ * SiteGround's CDN fetch fresh CSS/JS automatically after every upload.
+ */
+function memento_asset_ver( $relative ) {
+    $mtime = @filemtime( MEMENTO_DIR . '/' . ltrim( $relative, '/' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+    return MEMENTO_VERSION . ( $mtime ? '.' . $mtime : '' );
+}
+
 function memento_enqueue_assets() {
     // Google Fonts
     wp_enqueue_style(
@@ -96,7 +105,7 @@ function memento_enqueue_assets() {
         'memento-style',
         get_stylesheet_uri(),
         [ 'memento-google-fonts' ],
-        MEMENTO_VERSION
+        memento_asset_ver( 'style.css' )
     );
 
     // Extended theme CSS
@@ -104,7 +113,7 @@ function memento_enqueue_assets() {
         'memento-theme',
         MEMENTO_URI . '/assets/css/theme.css',
         [ 'memento-style' ],
-        MEMENTO_VERSION
+        memento_asset_ver( 'assets/css/theme.css' )
     );
 
     // WooCommerce adjustments (only if WooCommerce active)
@@ -113,7 +122,7 @@ function memento_enqueue_assets() {
             'memento-woocommerce',
             MEMENTO_URI . '/assets/css/woocommerce.css',
             [ 'memento-theme', 'woocommerce-general' ],
-            MEMENTO_VERSION
+            memento_asset_ver( 'assets/css/woocommerce.css' )
         );
     }
 
@@ -122,7 +131,7 @@ function memento_enqueue_assets() {
         'memento-theme',
         MEMENTO_URI . '/assets/js/theme.js',
         [],
-        MEMENTO_VERSION,
+        memento_asset_ver( 'assets/js/theme.js' ),
         true
     );
 
@@ -333,6 +342,9 @@ if ( class_exists( 'WooCommerce' ) ) {
 
     // Remove SKU / Category / Brand meta block.
     remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
+
+    // Remove sidebar from shop/archive pages — we don't want it.
+    remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar' );
 }
 
 // Inject shop/archive page styles inline.
@@ -346,131 +358,14 @@ add_action( 'wp_head', function () {
     .woocommerce-result-count,
     .woocommerce-ordering { display: none !important; }
 
-    /* ── Page wrapper breathing room ── */
-    .woocommerce-page .site-main,
-    body.woocommerce .site-main { padding-bottom: 4rem; }
-
-    /* ── Product grid ── */
-    .woocommerce ul.products {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 1.75rem !important;
-        list-style: none !important;
-        padding: 2rem 0 0 !important;
-        margin: 0 !important;
+    /* ── Product grid wrapper ── */
+    .memento-products-wrap {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 2rem 1.5rem 4rem;
     }
 
-    /* ── Product card ── */
-    .woocommerce ul.products li.product {
-        background: #fff !important;
-        border-radius: 16px !important;
-        overflow: hidden !important;
-        box-shadow: 0 2px 12px rgba(26,26,26,.07), 0 1px 3px rgba(26,26,26,.05) !important;
-        transition: transform .25s ease, box-shadow .25s ease !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        position: relative !important;
-    }
-    .woocommerce ul.products li.product:hover {
-        transform: translateY(-6px) !important;
-        box-shadow: 0 12px 32px rgba(255,95,160,.22) !important;
-    }
-
-    /* ── Product image ── */
-    .woocommerce ul.products li.product a.woocommerce-loop-product__link img,
-    .woocommerce ul.products li.product img {
-        width: 100% !important;
-        aspect-ratio: 1 / 1 !important;
-        object-fit: cover !important;
-        border-radius: 0 !important;
-        display: block !important;
-        margin: 0 !important;
-    }
-    /* Placeholder image styling */
-    .woocommerce ul.products li.product .woocommerce-placeholder {
-        background: linear-gradient(135deg, #FFF0E6 0%, #FFF8F0 100%) !important;
-        padding: 2rem !important;
-        aspect-ratio: 1 / 1 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* ── Card body ── */
-    .woocommerce ul.products li.product .woocommerce-loop-product__title {
-        font-family: 'Big Shoulders Display', sans-serif !important;
-        font-size: 1.125rem !important;
-        font-weight: 700 !important;
-        color: #1A1A1A !important;
-        padding: 1rem 1.25rem .375rem !important;
-        margin: 0 !important;
-        line-height: 1.25 !important;
-    }
-
-    /* ── Price ── */
-    .woocommerce ul.products li.product .price {
-        display: block !important;
-        font-family: 'Big Shoulders Display', sans-serif !important;
-        font-size: 1.25rem !important;
-        font-weight: 800 !important;
-        padding: 0 1.25rem .875rem !important;
-        margin: 0 !important;
-        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
-    }
-
-    /* ── Upload Now button ── */
-    .woocommerce ul.products li.product .button {
-        display: block !important;
-        margin: auto 1.25rem 1.25rem !important;
-        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 9999px !important;
-        font-family: 'Outfit', sans-serif !important;
-        font-size: .9375rem !important;
-        font-weight: 700 !important;
-        padding: .7rem 1.5rem !important;
-        text-align: center !important;
-        cursor: pointer !important;
-        text-decoration: none !important;
-        box-shadow: 0 6px 16px rgba(255,95,160,.28) !important;
-        transition: transform .25s ease, box-shadow .25s ease !important;
-        letter-spacing: .01em !important;
-    }
-    .woocommerce ul.products li.product .button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 10px 24px rgba(255,95,160,.38) !important;
-        color: #fff !important;
-        -webkit-text-fill-color: #fff !important;
-    }
-
-    /* ── Sale badge ── */
-    .woocommerce ul.products li.product .onsale {
-        background: #FF5FA0 !important;
-        color: #fff !important;
-        border-radius: 9999px !important;
-        font-size: .75rem !important;
-        font-weight: 700 !important;
-        padding: .25rem .75rem !important;
-        top: .875rem !important;
-        left: .875rem !important;
-        min-height: unset !important;
-        min-width: unset !important;
-        line-height: 1.5 !important;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 1024px) {
-        .woocommerce ul.products { grid-template-columns: repeat(2, 1fr) !important; }
-    }
-    @media (max-width: 480px) {
-        .woocommerce ul.products { grid-template-columns: 1fr !important; }
-    }
     </style>
     <?php
 }, 5 );
@@ -863,86 +758,26 @@ add_action( 'wp_head', function () {
     <?php
 }, 5 );
 
+// Shared product cards (Products page + homepage collection), pack-size ordering.
+require_once MEMENTO_DIR . '/inc/product-cards.php';
+
+// Creates the Blogs, FAQ and blog-article pages if they're missing (prevents 404s).
+require_once MEMENTO_DIR . '/inc/page-setup.php';
+
+// Contact form handler + saved messages (WP Admin → Messages).
+require_once MEMENTO_DIR . '/inc/contact-form.php';
+
 // ============================================================
-// SINGLE PRODUCT — PHOTO UPLOAD + TRUST BADGES
+// SINGLE PRODUCT — TRUST BADGES
+// Photo upload, editor, cart validation, order files and Dropbox sync
+// live in the "Memento Personalizer" plugin (memento-personalizer/).
 // ============================================================
 
-// Enqueue upload JS only on single product pages.
-add_action( 'wp_enqueue_scripts', function () {
-    if ( ! is_product() ) return;
-    wp_enqueue_script(
-        'memento-product-upload',
-        MEMENTO_URI . '/assets/js/product-upload.js',
-        [],
-        MEMENTO_VERSION,
-        true
-    );
-    wp_localize_script( 'memento-product-upload', 'mementoUpload', [
-        'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-        'nonce'   => wp_create_nonce( 'memento_upload_photo' ),
-        'strings' => [
-            'photo'       => __( 'Photo', 'memento-magnets' ),
-            'uploadFail'  => __( 'Upload failed. Please try again.', 'memento-magnets' ),
-            'invalidType' => __( 'Please upload a JPG, PNG, or WebP image.', 'memento-magnets' ),
-            'tooLarge'    => __( 'File too large. Maximum 15MB.', 'memento-magnets' ),
-        ],
-    ] );
+// Warn admins if the personalisation plugin is not active.
+add_action( 'admin_notices', function () {
+    if ( defined( 'MEMENTO_PZ_VERSION' ) || ! current_user_can( 'activate_plugins' ) ) return;
+    echo '<div class="notice notice-error"><p>' . esc_html__( 'Memento Magnets: the "Memento Personalizer" plugin is not active, so customers cannot upload photos. Activate it under Plugins.', 'memento-magnets' ) . '</p></div>';
 } );
-
-// Helper: detect photo count from product meta or title.
-function memento_get_photo_count( $product ) {
-    $count = (int) get_post_meta( $product->get_id(), '_memento_photo_count', true );
-    if ( ! $count && preg_match( '/\b(12|9|6|3)\b/', $product->get_name(), $m ) ) {
-        $count = (int) $m[1];
-    }
-    return $count ?: 3;
-}
-
-
-// Priority 28 — Photo upload widget (between excerpt at 25 and add-to-cart at 30).
-add_action( 'woocommerce_single_product_summary', function () {
-    global $product;
-    $photo_count = memento_get_photo_count( $product );
-    ?>
-    <div class="memento-upload-widget" data-photo-count="<?php echo esc_attr( $photo_count ); ?>">
-
-        <div class="memento-upload-widget__header">
-            <h4 class="memento-upload-widget__title">
-                <?php printf(
-                    /* translators: %d: number of photos */
-                    _n( 'Upload Your Photo (%d)', 'Upload Your %d Photos', $photo_count, 'memento-magnets' ),
-                    $photo_count
-                ); ?>
-            </h4>
-            <div class="upload-progress">
-                <div class="upload-progress__bar">
-                    <div class="upload-progress__fill" style="width:0%"></div>
-                </div>
-                <span class="upload-progress__text">
-                    <strong class="upload-progress__count">0</strong> / <?php echo esc_html( $photo_count ); ?>
-                </span>
-            </div>
-        </div>
-
-        <p class="memento-upload-widget__hint">
-            <?php _e( 'Click each square to upload a photo. For best print quality use at least 500&times;500px.', 'memento-magnets' ); ?>
-        </p>
-
-        <div class="memento-upload-grid"></div>
-
-        <input type="hidden" name="memento_photos" class="memento-photos-input" value="">
-
-        <p class="memento-upload-widget__cta-note js-upload-cta-note">
-            <?php printf(
-                /* translators: %d: number of photos */
-                __( 'Upload all %d photos to enable &ldquo;Add to Cart&rdquo;', 'memento-magnets' ),
-                $photo_count
-            ); ?>
-        </p>
-
-    </div>
-    <?php
-}, 28 );
 
 // Priority 35 — Trust badges (after add-to-cart at 30).
 add_action( 'woocommerce_single_product_summary', function () {
@@ -983,6 +818,7 @@ add_action( 'woocommerce_product_thumbnails', function () {
     global $product;
     if ( ! $product ) return;
     if ( ! empty( $product->get_gallery_image_ids() ) ) return; // skip if real gallery exists
+    if ( ! $product->get_image_id() && memento_card_pack_count( $product ) ) return; // magnet-tile visual already shown
     ?>
     <div class="memento-thumb-placeholders" aria-hidden="true">
         <?php for ( $i = 0; $i < 3; $i++ ) : ?>
@@ -998,107 +834,36 @@ add_action( 'woocommerce_product_thumbnails', function () {
     <?php
 }, 30 );
 
-// AJAX — Handle photo file upload.
-add_action( 'wp_ajax_memento_upload_photo',        'memento_handle_photo_upload' );
-add_action( 'wp_ajax_nopriv_memento_upload_photo', 'memento_handle_photo_upload' );
-
-function memento_handle_photo_upload() {
-    check_ajax_referer( 'memento_upload_photo', 'nonce' );
-
-    if ( empty( $_FILES['photo']['tmp_name'] ) ) {
-        wp_send_json_error( [ 'message' => __( 'No file received.', 'memento-magnets' ) ] );
+// "Added to your cart" message: bold product name(s), cleaner wording.
+// Styled in assets/css/theme.css (STORE NOTICES).
+add_filter( 'wc_add_to_cart_message_html', function ( $message, $products ) {
+    $names = [];
+    $count = 0;
+    foreach ( (array) $products as $product_id => $qty ) {
+        $names[] = '<strong>' . esc_html( wp_strip_all_tags( get_the_title( $product_id ) ) ) . '</strong>';
+        $count  += max( 1, (int) $qty );
     }
-
-    $file = $_FILES['photo']; // phpcs:ignore
-
-    // Validate MIME via finfo (not extension).
-    $finfo        = new finfo( FILEINFO_MIME_TYPE );
-    $mime         = $finfo->file( $file['tmp_name'] );
-    $allowed_mime = [ 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ];
-
-    if ( ! in_array( $mime, $allowed_mime, true ) ) {
-        wp_send_json_error( [ 'message' => __( 'Please upload a JPG, PNG, or WebP image.', 'memento-magnets' ) ] );
+    if ( ! $names ) {
+        return $message;
     }
-
-    if ( $file['size'] > 15 * 1024 * 1024 ) {
-        wp_send_json_error( [ 'message' => __( 'File too large. Maximum 15MB.', 'memento-magnets' ) ] );
-    }
-
-    $upload_dir = wp_upload_dir();
-    $target_dir = $upload_dir['basedir'] . '/memento-orders/' . gmdate( 'Y/m' );
-    wp_mkdir_p( $target_dir );
-
-    // Prevent directory listing.
-    $htaccess = $upload_dir['basedir'] . '/memento-orders/.htaccess';
-    if ( ! file_exists( $htaccess ) ) {
-        file_put_contents( $htaccess, "Options -Indexes\n" ); // phpcs:ignore
-    }
-
-    $ext_map  = [ 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif' ];
-    $ext      = $ext_map[ $mime ] ?? 'jpg';
-    $filename = wp_generate_uuid4() . '.' . $ext;
-    $target   = $target_dir . '/' . $filename;
-
-    if ( ! move_uploaded_file( $file['tmp_name'], $target ) ) {
-        wp_send_json_error( [ 'message' => __( 'Could not save file. Please try again.', 'memento-magnets' ) ] );
-    }
-
-    $url = $upload_dir['baseurl'] . '/memento-orders/' . gmdate( 'Y/m' ) . '/' . $filename;
-    wp_send_json_success( [ 'url' => $url ] );
-}
-
-// Cart — attach uploaded photo URLs to cart item.
-add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {
-    if ( ! empty( $_POST['memento_photos'] ) ) {
-        $raw    = sanitize_text_field( wp_unslash( $_POST['memento_photos'] ) );
-        $photos = json_decode( $raw, true );
-        if ( is_array( $photos ) ) {
-            $data['memento_photos'] = array_map( 'esc_url_raw', $photos );
-        }
-    }
-    return $data;
+    $text = sprintf(
+        /* translators: %s: product name(s) */
+        _n( '%s has been added to your cart.', '%s have been added to your cart.', count( $names ), 'memento-magnets' ),
+        wp_sprintf( '%l', $names )
+    );
+    return sprintf(
+        '<span class="mm-notice__text">%s</span> <a href="%s" class="button wc-forward">%s</a>',
+        $text,
+        esc_url( wc_get_cart_url() ),
+        esc_html__( 'View cart', 'memento-magnets' )
+    );
 }, 10, 2 );
 
-// Cart — show photo count in cart/checkout line items.
-add_filter( 'woocommerce_get_item_data', function ( $item_data, $cart_item ) {
-    if ( ! empty( $cart_item['memento_photos'] ) ) {
-        $count       = count( $cart_item['memento_photos'] );
-        $item_data[] = [
-            'key'   => __( 'Custom Photos', 'memento-magnets' ),
-            'value' => sprintf( _n( '%d photo uploaded', '%d photos uploaded', $count, 'memento-magnets' ), $count ),
-        ];
-    }
-    return $item_data;
-}, 10, 2 );
-
-// Order — persist photo URLs in order line item meta.
-add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $cart_item_key, $values ) {
-    if ( ! empty( $values['memento_photos'] ) ) {
-        $item->add_meta_data(
-            __( 'Customer Photos', 'memento-magnets' ),
-            implode( "\n", $values['memento_photos'] )
-        );
-    }
-}, 10, 3 );
-
-// Validation — block add-to-cart if photos are missing.
-add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_id ) {
-    $product     = wc_get_product( $product_id );
-    $photo_count = $product ? memento_get_photo_count( $product ) : 0;
-
-    if ( $photo_count && empty( $_POST['memento_photos'] ) ) {
-        wc_add_notice(
-            sprintf(
-                /* translators: %d: number of required photos */
-                __( 'Please upload all %d photos before adding to cart.', 'memento-magnets' ),
-                $photo_count
-            ),
-            'error'
-        );
-        return false;
-    }
-    return $passed;
-}, 10, 2 );
+// After a successful add-to-cart (form POST path), always redirect to cart.
+// Without this WooCommerce defaults to redirecting back to the product page.
+add_filter( 'woocommerce_add_to_cart_redirect', function() {
+    return wc_get_cart_url();
+} );
 
 // ============================================================
 // STRUCTURED DATA HELPERS
