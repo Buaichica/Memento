@@ -26,7 +26,7 @@ $faq_groups = [
             ],
             [
                 'q' => __( 'What payment methods do you accept?', 'memento-magnets' ),
-                'a' => __( 'We accept Visa, Mastercard, PayPal, and Apple Pay. All transactions are secured with SSL encryption.', 'memento-magnets' ),
+                'a' => __( 'We accept credit and debit cards, including Visa and Mastercard. Payments are processed securely by Stripe — your card details go straight to Stripe and are never stored on our website.', 'memento-magnets' ),
             ],
         ],
     ],

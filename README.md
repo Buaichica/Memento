@@ -126,6 +126,7 @@ Plus search icon and WooCommerce mini-cart icon.
 - [ ] **Logo** — Add your logo image to `assets/img/` and set it via **Appearance → Customize → Site Identity**
 - [ ] **OG image** — Add a real `og-default.jpg` to `assets/img/` for social share previews
 - [ ] **Personalizer** — Check **Required Photos** on each magnet product, add the Dropbox credentials and `MEMENTO_PZ_STORAGE_DIR` to `wp-config.php`, and run the staging checklist in `memento-personalizer/README.md`
+- [ ] **Payments (Stripe)** — Install **WooCommerce Stripe Payment Gateway**, then **WooCommerce → Settings → Payments → Stripe → Connect** your Stripe account (test mode first, then live). Enable only *Credit / Debit Card*; make sure **Cash on delivery**, bank transfer and cheque are disabled. Set **WooCommerce → Settings → General → Store address** to New Zealand.
 - [ ] **hreflang** — Verify that `$_SERVER['HTTP_HOST']` resolves correctly on your production server (NZ + AU hreflang tags are set dynamically in `header.php`)
 
 ---

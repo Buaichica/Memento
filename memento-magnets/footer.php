@@ -109,9 +109,11 @@
 
             <div class="payment-icons" aria-label="<?php esc_attr_e( 'Accepted payment methods', 'memento-magnets' ); ?>">
                 <span class="payment-icon">VISA</span>
-                <span class="payment-icon">MC</span>
-                <span class="payment-icon">PayPal</span>
-                <span class="payment-icon">⌘ Pay</span>
+                <span class="payment-icon">Mastercard</span>
+                <span class="payment-icon payment-icon--stripe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <?php esc_html_e( 'Secured by Stripe', 'memento-magnets' ); ?>
+                </span>
             </div>
         </div>
 

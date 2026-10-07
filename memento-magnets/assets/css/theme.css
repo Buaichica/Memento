@@ -1466,6 +1466,7 @@ html.search-open { overflow: hidden; }
     font-weight: 600;
     border: 1px solid rgba(255,255,255,0.15);
 }
+.payment-icon--stripe { display: inline-flex; align-items: center; gap: .3rem; }
 
 /* ============================================================
    BLOG — ARCHIVE
