@@ -94,34 +94,161 @@
     // SEARCH OVERLAY
     // ============================================================
     function initSearchOverlay() {
-        var openBtn = document.querySelector('.js-search-open');
-        var closeBtn = document.querySelector('.js-search-close');
         var overlay = document.querySelector('.search-overlay');
         if (!overlay) return;
+        var openBtn  = document.querySelector('.js-search-open');
+        var closeBtn = overlay.querySelector('.js-search-close');
+        var form     = overlay.querySelector('.search-form');
+        var input    = overlay.querySelector('input[type="search"]');
+        var list     = overlay.querySelector('.search-suggest');
+        var quick    = overlay.querySelector('.search-quick');
+        var status   = overlay.querySelector('.search-suggest__status');
+        var data     = (window.mementoSearch && window.mementoSearch.items) || [];
+        var S        = (window.mementoSearch && window.mementoSearch.strings) || {};
+        var lastFocus = null;
+        var active    = -1;
+        var closeTimer;
 
         function openSearch() {
+            clearTimeout(closeTimer);
+            lastFocus = document.activeElement;
+            overlay.hidden = false;
+            // Force a style recalculation so the fade/slide transition runs from the hidden state.
+            void overlay.offsetWidth;
             overlay.classList.add('is-open');
-            document.body.style.overflow = 'hidden';
-            var input = overlay.querySelector('input[type="search"]');
-            if (input) {
-                setTimeout(function () { input.focus(); }, 100);
-            }
+            document.documentElement.classList.add('search-open');
+            if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+            setTimeout(function () { if (input) { input.focus(); input.select(); } }, 60);
         }
 
         function closeSearch() {
+            if (overlay.hidden) return;
             overlay.classList.remove('is-open');
-            document.body.style.overflow = '';
+            document.documentElement.classList.remove('search-open');
+            if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+            closeTimer = setTimeout(function () { overlay.hidden = true; }, 250);
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
         }
 
-        if (openBtn) openBtn.addEventListener('click', openSearch);
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function highlight(text, terms) {
+            var html = escapeHtml(text);
+            terms.forEach(function (t) {
+                if (!t) return;
+                var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+                html = html.replace(re, '<mark>$1</mark>');
+            });
+            return html;
+        }
+
+        function options() { return list ? Array.prototype.slice.call(list.querySelectorAll('[role="option"]')) : []; }
+
+        function setActive(i) {
+            var opts = options();
+            if (!opts.length) { active = -1; return; }
+            active = (i + opts.length) % opts.length;
+            opts.forEach(function (o, n) { o.setAttribute('aria-selected', n === active ? 'true' : 'false'); });
+            opts[active].scrollIntoView({ block: 'nearest' });
+            input.setAttribute('aria-activedescendant', opts[active].id);
+        }
+
+        function render() {
+            if (!list) return;
+            var q = input.value.trim().toLowerCase();
+            active = -1;
+            input.removeAttribute('aria-activedescendant');
+            if (q.length < 2) {
+                list.hidden = true;
+                list.innerHTML = '';
+                if (quick) quick.hidden = false;
+                if (status) status.textContent = '';
+                return;
+            }
+            var terms = q.split(/\s+/).filter(Boolean);
+            var matches = data.filter(function (item) {
+                var hay = (item.title + ' ' + item.meta + ' ' + item.keywords).toLowerCase();
+                return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+            });
+            var products = matches.filter(function (m) { return m.type === 'product'; }).slice(0, 4);
+            var pages = matches.filter(function (m) { return m.type !== 'product'; }).slice(0, 4);
+            var html = '', n = 0;
+
+            function group(label, items) {
+                if (!items.length) return;
+                html += '<p class="search-suggest__group">' + escapeHtml(label) + '</p>';
+                items.forEach(function (item) {
+                    var icon = item.type === 'product'
+                        ? '<span class="search-suggest__thumb search-suggest__thumb--tiles" data-count="' + (item.count || 3) + '"><i></i><i></i><i></i><i></i></span>'
+                        : '<span class="search-suggest__thumb"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span>';
+                    html += '<a class="search-suggest__item" role="option" aria-selected="false" id="search-opt-' + (n++) + '" href="' + escapeHtml(item.url) + '">' +
+                        icon + '<span class="search-suggest__text"><span class="search-suggest__title">' + highlight(item.title, terms) + '</span>' +
+                        '<span class="search-suggest__meta">' + escapeHtml(item.meta) + '</span></span></a>';
+                });
+            }
+            group(S.products || 'Products', products);
+            group(S.pages || 'Pages', pages);
+            if (!n) html += '<p class="search-suggest__empty">' + escapeHtml(S.noMatches || '') + '</p>';
+            html += '<a class="search-suggest__item search-suggest__all" role="option" aria-selected="false" id="search-opt-' + (n++) + '" href="' +
+                escapeHtml(form.getAttribute('action') + '?s=' + encodeURIComponent(input.value.trim())) + '">' +
+                escapeHtml((S.seeAll || 'See all results for “%s”').replace('%s', input.value.trim())) + ' →</a>';
+
+            list.innerHTML = html;
+            list.hidden = false;
+            if (quick) quick.hidden = true;
+            if (status) status.textContent = (S.resultsFor || '%d').replace('%d', n);
+        }
+
+        if (input && list) {
+            input.setAttribute('role', 'combobox');
+            input.setAttribute('aria-autocomplete', 'list');
+            input.setAttribute('aria-controls', 'search-suggest-list');
+            list.id = 'search-suggest-list';
+            input.addEventListener('input', render);
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+                else if (e.key === 'Enter' && active > -1) {
+                    var opt = options()[active];
+                    if (opt) { e.preventDefault(); window.location.href = opt.href; }
+                }
+            });
+        }
+
+        if (openBtn) {
+            openBtn.setAttribute('aria-expanded', 'false');
+            openBtn.addEventListener('click', openSearch);
+        }
         if (closeBtn) closeBtn.addEventListener('click', closeSearch);
 
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) closeSearch();
-        });
+        // Click on the dimmed backdrop closes; clicks inside the panel don't.
+        overlay.addEventListener('mousedown', function (e) { if (e.target === overlay) closeSearch(); });
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeSearch();
+            if (overlay.hidden) {
+                // "/" opens search from anywhere (except while typing in a field).
+                if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
+                    e.preventDefault();
+                    openSearch();
+                }
+                return;
+            }
+            if (e.key === 'Escape') { e.preventDefault(); closeSearch(); return; }
+            if (e.key === 'Tab') {
+                // Keep keyboard focus inside the panel.
+                var focusable = Array.prototype.filter.call(
+                    overlay.querySelectorAll('a[href], button, input'),
+                    function (el) { return el.offsetParent !== null && !el.disabled; }
+                );
+                if (!focusable.length) return;
+                var first = focusable[0], last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
         });
     }
 

@@ -41,7 +41,15 @@ class Memento_PZ_Frontend {
 
 	/** Cart & checkout: photo tiles under each personalised item. */
 	public static function enqueue_cart() {
-		if ( ! function_exists( 'is_cart' ) || ! ( is_cart() || is_checkout() ) || is_wc_endpoint_url( 'order-received' ) ) {
+		if ( ! function_exists( 'is_cart' ) ) {
+			return;
+		}
+		// My Account → View order: tile styles only (tiles are server-rendered there).
+		if ( is_wc_endpoint_url( 'view-order' ) ) {
+			wp_enqueue_style( 'memento-personalizer', MEMENTO_PZ_URL . 'assets/css/personalizer.css', [], self::ver( 'assets/css/personalizer.css' ) );
+			return;
+		}
+		if ( ! ( is_cart() || is_checkout() ) || is_wc_endpoint_url( 'order-received' ) ) {
 			return;
 		}
 		wp_enqueue_style( 'memento-personalizer', MEMENTO_PZ_URL . 'assets/css/personalizer.css', [], self::ver( 'assets/css/personalizer.css' ) );

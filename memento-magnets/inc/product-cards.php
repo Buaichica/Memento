@@ -188,3 +188,69 @@ add_filter( 'woocommerce_single_product_image_thumbnail_html', function ( $html,
     }
     return '<div class="woocommerce-product-gallery__image--placeholder mm-single-visual">' . memento_magnet_tiles_visual( $count, 'mm-tiles--large' ) . '</div>';
 }, 10, 2 );
+
+/* ── Single product page: related products as shared cards ───── */
+
+// Replace WooCommerce's default related/upsell loops (grey placeholders, different design).
+add_action( 'wp', function () {
+    if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+        return;
+    }
+    remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15 );
+    remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+    add_action( 'woocommerce_after_single_product_summary', 'memento_output_related_cards', 20 );
+} );
+
+/**
+ * "You may also like" — upsells first, then related products, then any other
+ * visible products as a fallback; max 4, ordered by pack size.
+ */
+function memento_output_related_cards() {
+    global $product;
+    if ( ! $product instanceof WC_Product ) {
+        return;
+    }
+    $limit = 4;
+    $ids   = array_merge( $product->get_upsell_ids(), wc_get_related_products( $product->get_id(), $limit ) );
+    if ( count( array_unique( $ids ) ) < $limit ) {
+        // Small catalogue: fill with other products so the section is never sparse.
+        $ids = array_merge( $ids, wc_get_products( [
+            'status'     => 'publish',
+            'visibility' => 'catalog',
+            'exclude'    => array_merge( [ $product->get_id() ], $ids ),
+            'limit'      => $limit,
+            'return'     => 'ids',
+        ] ) );
+    }
+    $ids = array_slice( array_values( array_unique( array_diff( array_map( 'absint', $ids ), [ $product->get_id() ] ) ) ), 0, $limit );
+    if ( ! $ids ) {
+        return;
+    }
+
+    $query = new WP_Query( [
+        'post_type'         => 'product',
+        'post_status'       => 'publish',
+        'post__in'          => $ids,
+        'posts_per_page'    => $limit,
+        'memento_pack_sort' => true,
+        'no_found_rows'     => true,
+    ] );
+    $cards = [];
+    foreach ( $query->posts as $post_obj ) {
+        $related = wc_get_product( $post_obj );
+        if ( $related && $related->is_visible() ) {
+            $cards[] = memento_product_card_data( $related );
+        }
+    }
+    if ( ! $cards ) {
+        return;
+    }
+    ?>
+    <section class="related products mm-related" aria-labelledby="mm-related-heading">
+        <h2 id="mm-related-heading"><?php esc_html_e( 'You may also like', 'memento-magnets' ); ?></h2>
+        <div class="mm-card-grid" style="--mm-grid-cols:<?php echo (int) max( 3, count( $cards ) ); ?>">
+            <?php foreach ( $cards as $card ) { memento_render_product_card( $card ); } ?>
+        </div>
+    </section>
+    <?php
+}

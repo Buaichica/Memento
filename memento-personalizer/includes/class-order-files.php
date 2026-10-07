@@ -34,6 +34,9 @@ class Memento_PZ_Order_Files {
 		add_action( 'woocommerce_payment_complete', [ __CLASS__, 'finalize' ], 5 );
 		add_action( 'woocommerce_order_status_processing', [ __CLASS__, 'finalize' ], 5 );
 
+		// My Account → View order: show the customer's own photos under each item.
+		add_action( 'woocommerce_order_item_meta_end', [ __CLASS__, 'view_order_photos' ], 10, 4 );
+
 		// Hide internal meta from customers/admin line item display.
 		add_filter( 'woocommerce_hidden_order_itemmeta', function ( $hidden ) {
 			return array_merge( $hidden, [ '_memento_pz_session', '_memento_pz_uploads', '_memento_pz_required', '_memento_pz_finalized' ] );
@@ -53,6 +56,28 @@ class Memento_PZ_Order_Files {
 			// Legacy cart item (pre-plugin). Preserve the original storage format.
 			$item->add_meta_data( self::LEGACY_META, implode( "\n", array_map( 'esc_url_raw', (array) $values['memento_photos'] ) ), true );
 		}
+	}
+
+	/**
+	 * Photo tiles on the customer's View order page only (never in emails,
+	 * the thank-you page or admin). File access is enforced by the file
+	 * server: only the logged-in order owner (or shop staff) can load them.
+	 */
+	public static function view_order_photos( $item_id, $item, $order, $plain_text = false ) {
+		if ( $plain_text || ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'view-order' ) || ! $order instanceof WC_Order ) {
+			return;
+		}
+		$uploads = Memento_PZ_Repository::item_uploads( $order->get_id(), $item_id );
+		if ( ! $uploads ) {
+			return;
+		}
+		echo '<span class="mm-cart-photos mm-order-photos">';
+		foreach ( $uploads as $upload ) {
+			echo '<span class="mm-cart-photos__tile' . ( 'low' === $upload->quality ? ' is-low' : '' ) . '"><img src="' . esc_url( Memento_PZ_File_Server::url( $upload, 'thumb' ) ) . '" alt="' .
+				/* translators: %d: photo number */
+				esc_attr( sprintf( __( 'Photo %d', 'memento-personalizer' ), (int) $upload->slot_index + 1 ) ) . '" width="44" height="44" loading="lazy"></span>';
+		}
+		echo '</span>';
 	}
 
 	/**

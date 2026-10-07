@@ -638,102 +638,6 @@ add_action( 'wp_head', function () {
         color: #1A1A1A !important;
         margin-bottom: 1.5rem !important;
     }
-    /* Related products grid — 4 equal columns with min width */
-    .single-product .related ul.products,
-    .single-product .up-sells ul.products {
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-        gap: 1.25rem !important;
-        list-style: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    /* Related product cards */
-    .single-product .related ul.products li.product,
-    .single-product .up-sells ul.products li.product {
-        background: #fff !important;
-        border-radius: 14px !important;
-        overflow: hidden !important;
-        box-shadow: 0 2px 10px rgba(26,26,26,.08) !important;
-        transition: transform .25s ease, box-shadow .25s ease !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        min-width: 0 !important;
-    }
-    .single-product .related ul.products li.product:hover,
-    .single-product .up-sells ul.products li.product:hover {
-        transform: translateY(-4px) !important;
-        box-shadow: 0 10px 24px rgba(255,95,160,.2) !important;
-    }
-    /* Image */
-    .single-product .related ul.products li.product img,
-    .single-product .up-sells ul.products li.product img {
-        width: 100% !important;
-        aspect-ratio: 1 / 1 !important;
-        object-fit: cover !important;
-        display: block !important;
-        margin: 0 !important;
-    }
-    /* Title */
-    .single-product .related ul.products li.product .woocommerce-loop-product__title,
-    .single-product .up-sells ul.products li.product .woocommerce-loop-product__title {
-        font-family: 'Big Shoulders Display', sans-serif !important;
-        font-size: 1rem !important;
-        font-weight: 700 !important;
-        color: #1A1A1A !important;
-        padding: .875rem 1rem .375rem !important;
-        margin: 0 !important;
-        line-height: 1.3 !important;
-        white-space: normal !important;
-        word-break: break-word !important;
-    }
-    /* Price */
-    .single-product .related ul.products li.product .price,
-    .single-product .up-sells ul.products li.product .price {
-        display: block !important;
-        font-family: 'Big Shoulders Display', sans-serif !important;
-        font-size: 1.125rem !important;
-        font-weight: 800 !important;
-        padding: 0 1rem .75rem !important;
-        margin: 0 !important;
-        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
-    }
-    /* Button — contained within card */
-    .single-product .related ul.products li.product .button,
-    .single-product .up-sells ul.products li.product .button {
-        display: block !important;
-        width: auto !important;
-        margin: auto 1rem 1rem !important;
-        background: linear-gradient(135deg, #FF5FA0 0%, #FFD54F 100%) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 9999px !important;
-        font-family: 'Outfit', sans-serif !important;
-        font-size: .8125rem !important;
-        font-weight: 700 !important;
-        padding: .6rem 1rem !important;
-        text-align: center !important;
-        cursor: pointer !important;
-        text-decoration: none !important;
-        box-shadow: 0 4px 12px rgba(255,95,160,.25) !important;
-        transition: transform .25s ease, box-shadow .25s ease !important;
-        overflow: hidden !important;
-        white-space: nowrap !important;
-        text-overflow: ellipsis !important;
-    }
-    .single-product .related ul.products li.product .button:hover,
-    .single-product .up-sells ul.products li.product .button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 20px rgba(255,95,160,.35) !important;
-        color: #fff !important;
-        -webkit-text-fill-color: #fff !important;
-    }
-
     /* ── Mobile stack ── */
     @media (max-width: 768px) {
         .single-product div.product {
@@ -743,16 +647,6 @@ add_action( 'wp_head', function () {
         }
         .single-product .summary { grid-column: 1; }
         .woocommerce-tabs { grid-column: 1; }
-        .single-product .related ul.products,
-        .single-product .up-sells ul.products {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-    }
-    @media (max-width: 480px) {
-        .single-product .related ul.products,
-        .single-product .up-sells ul.products {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
     }
     </style>
     <?php
@@ -766,6 +660,15 @@ require_once MEMENTO_DIR . '/inc/page-setup.php';
 
 // Contact form handler + saved messages (WP Admin → Messages).
 require_once MEMENTO_DIR . '/inc/contact-form.php';
+
+// My Account: menu items, status badges, account-only styles.
+require_once MEMENTO_DIR . '/inc/account.php';
+
+// Cart page: styling, progress bar, trust row, branded empty state.
+require_once MEMENTO_DIR . '/inc/cart-page.php';
+
+// Site search: instant suggestions, quick links, cleaner results.
+require_once MEMENTO_DIR . '/inc/search.php';
 
 // ============================================================
 // SINGLE PRODUCT — TRUST BADGES

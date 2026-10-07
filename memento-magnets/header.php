@@ -92,7 +92,7 @@
 <?php wp_body_open(); ?>
 
 <!-- Announcement Bar -->
-<div class="announcement-bar" role="banner" aria-label="<?php esc_attr_e( 'Promotion', 'memento-magnets' ); ?>">
+<div class="announcement-bar" role="region" aria-label="<?php esc_attr_e( 'Promotion', 'memento-magnets' ); ?>">
     <p>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-right:6px;">
             <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
@@ -101,11 +101,45 @@
     </p>
 </div>
 
-<!-- Search overlay -->
-<div class="search-overlay" role="dialog" aria-label="<?php esc_attr_e( 'Search', 'memento-magnets' ); ?>" aria-modal="true">
-    <div class="search-overlay-inner">
-        <button class="js-search-close btn btn--outline-white" style="margin-bottom:1rem;" aria-label="<?php esc_attr_e( 'Close search', 'memento-magnets' ); ?>">✕ Close</button>
+<!-- Search panel (opened by the search icon; behaviour in assets/js/theme.js) -->
+<div class="search-overlay" role="dialog" aria-modal="true" aria-labelledby="search-panel-title" hidden>
+    <div class="search-panel">
+        <div class="search-panel__head">
+            <h2 class="search-panel__title" id="search-panel-title"><?php esc_html_e( 'What are you looking for?', 'memento-magnets' ); ?></h2>
+            <button type="button" class="search-panel__close js-search-close" aria-label="<?php esc_attr_e( 'Close search', 'memento-magnets' ); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+        </div>
+
         <?php get_search_form(); ?>
+
+        <div class="search-suggest" role="listbox" aria-label="<?php esc_attr_e( 'Suggestions', 'memento-magnets' ); ?>" hidden></div>
+        <p class="sr-only search-suggest__status" role="status" aria-live="polite"></p>
+
+        <div class="search-quick">
+            <p class="search-quick__label"><?php esc_html_e( 'Popular', 'memento-magnets' ); ?></p>
+            <div class="search-quick__chips">
+                <?php
+                $memento_quick = [];
+                if ( function_exists( 'memento_search_index' ) ) {
+                    foreach ( memento_search_index() as $memento_item ) {
+                        if ( 'product' === $memento_item['type'] && $memento_item['count'] ) {
+                            /* translators: %d: pack size */
+                            $memento_quick[] = [ $memento_item['url'], sprintf( __( '%d-Pack', 'memento-magnets' ), $memento_item['count'] ) ];
+                        }
+                    }
+                }
+                $memento_quick[] = [ class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' ), __( 'All magnets', 'memento-magnets' ) ];
+                $memento_quick[] = [ home_url( '/faq/' ), __( 'FAQ', 'memento-magnets' ) ];
+                $memento_quick[] = [ home_url( '/contact/' ), __( 'Contact us', 'memento-magnets' ) ];
+                foreach ( $memento_quick as list( $memento_url, $memento_label ) ) {
+                    echo '<a class="search-chip" href="' . esc_url( $memento_url ) . '">' . esc_html( $memento_label ) . '</a>';
+                }
+                ?>
+            </div>
+        </div>
+
+        <p class="search-panel__hint" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> <?php esc_html_e( 'to browse', 'memento-magnets' ); ?> · <kbd>Enter</kbd> <?php esc_html_e( 'to open', 'memento-magnets' ); ?> · <kbd>Esc</kbd> <?php esc_html_e( 'to close', 'memento-magnets' ); ?></p>
     </div>
 </div>
 
@@ -128,6 +162,7 @@
                             loading="eager"
                         >
                     <?php endif; ?>
+                    <span class="site-logo-text"><?php esc_html_e( 'Memento Magnets', 'memento-magnets' ); ?></span>
                 </a>
             </div>
 
@@ -151,7 +186,7 @@
                 <div class="nav-actions">
 
                     <!-- Search trigger -->
-                    <button class="nav-icon-btn js-search-open" aria-label="<?php esc_attr_e( 'Search', 'memento-magnets' ); ?>" type="button">
+                    <button class="nav-icon-btn js-search-open" aria-label="<?php esc_attr_e( 'Search', 'memento-magnets' ); ?>" aria-haspopup="dialog" type="button">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="11" cy="11" r="8"/>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -206,13 +241,22 @@
  * Fallback nav when no menu is assigned.
  */
 function memento_fallback_nav() {
-    ?>
-    <ul class="nav-list" role="list">
-        <li class="nav-item"><a href="<?php echo home_url('/'); ?>">Home</a></li>
-        <li class="nav-item"><a href="<?php echo esc_url( class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' ) ); ?>">Products</a></li>
-        <li class="nav-item"><a href="<?php echo home_url('/blogs/'); ?>">Blogs</a></li>
-        <li class="nav-item"><a href="<?php echo home_url('/faq/'); ?>">FAQ</a></li>
-        <li class="nav-item"><a href="<?php echo home_url('/contact/'); ?>">Contact Us</a></li>
-    </ul>
-    <?php
+    $shop  = class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+    $items = [
+        [ home_url( '/' ), __( 'Home', 'memento-magnets' ), is_front_page() ],
+        [ $shop, __( 'Products', 'memento-magnets' ), function_exists( 'is_woocommerce' ) && ( is_shop() || is_product() || is_product_taxonomy() ) ],
+        [ home_url( '/blogs/' ), __( 'Blogs', 'memento-magnets' ), ! is_front_page() && ( is_page( 'blogs' ) || is_home() || is_singular( 'post' ) || is_page_template( [ 'page-blog-personalised-magnets-perfect-gift-nz.php', 'page-blog-how-to-choose-best-photo-for-custom-magnet.php', 'page-blog-custom-magnets-every-occasion-nz.php' ] ) ) ],
+        [ home_url( '/faq/' ), __( 'FAQ', 'memento-magnets' ), is_page( 'faq' ) ],
+    ];
+    echo '<ul class="nav-list" role="list">';
+    foreach ( $items as list( $url, $label, $current ) ) {
+        printf(
+            '<li class="nav-item menu-item%s"><a href="%s"%s>%s</a></li>',
+            $current ? ' current-menu-item' : '',
+            esc_url( $url ),
+            $current ? ' aria-current="page"' : '',
+            esc_html( $label )
+        );
+    }
+    echo '</ul>';
 }

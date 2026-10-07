@@ -256,13 +256,15 @@ html.memento-pz-modal-open { overflow: hidden; }
     transform: rotate(-2deg);
 }
 .mm-cart-photos__tile:nth-child(even) { transform: rotate(2deg); }
-.mm-cart-photos__tile img {
+.mm-cart-photos .mm-cart-photos__tile img {
     display: block;
     width: 100%;
     height: 100%;
+    max-width: none;
     object-fit: cover;
-    margin: 0;
+    margin: 0 !important; /* themes often add margins to content images (e.g. .post-content img) */
     border-radius: 0;
+    box-shadow: none;
 }
 .mm-cart-photos__tile.is-low::after {
     content: '';

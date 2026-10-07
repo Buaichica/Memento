@@ -1,6 +1,6 @@
 <?php
 /**
- * Creates the theme's built-in pages (Blogs, FAQ, Contact, the three blog articles) if
+ * Creates the theme's built-in pages (Blogs, FAQ, Contact, policies, blog articles) if
  * they don't exist, so links in the header and articles never 404 on a fresh
  * or migrated site.
  *
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-const MEMENTO_PAGES_VERSION = '2'; // 2: added Contact.
+const MEMENTO_PAGES_VERSION = '3'; // 2: added Contact. 3: added policy pages.
 
 function memento_builtin_pages() {
     return [
@@ -33,6 +33,27 @@ function memento_builtin_pages() {
         'contact' => [
             'title'    => __( 'Contact Us', 'memento-magnets' ),
             'template' => '', // page-contact.php applies automatically by slug.
+            'content'  => '',
+        ],
+        // Policy pages: the page-{slug}.php templates hold the policy text.
+        'privacy-policy' => [
+            'title'    => __( 'Privacy Policy', 'memento-magnets' ),
+            'template' => '',
+            'content'  => '',
+        ],
+        'refund-policy' => [
+            'title'    => __( 'Refund Policy', 'memento-magnets' ),
+            'template' => '',
+            'content'  => '',
+        ],
+        'terms-of-service' => [
+            'title'    => __( 'Terms of Service', 'memento-magnets' ),
+            'template' => '',
+            'content'  => '',
+        ],
+        'shipping-policy' => [
+            'title'    => __( 'Shipping Policy', 'memento-magnets' ),
+            'template' => '',
             'content'  => '',
         ],
         'personalised-magnets-perfect-gift-nz' => [
@@ -68,6 +89,14 @@ function memento_setup_builtin_pages() {
                 $report[ $slug ] = 'trashed';
                 continue;
             }
+            // WordPress creates an unpublished "Privacy Policy" draft at /privacy-policy/ on
+            // install. If it's still that untouched default, publish it (the theme template
+            // supplies the real policy). A draft someone has edited is left alone.
+            if ( 'draft' === $existing->post_status && memento_is_untouched_default_draft( $existing ) ) {
+                wp_update_post( [ 'ID' => $existing->ID, 'post_status' => 'publish' ] );
+                $report[ $slug ] = 'published';
+                continue;
+            }
             $current = get_post_meta( $existing->ID, '_wp_page_template', true );
             if ( $page['template'] && ( ! $current || 'default' === $current ) ) {
                 update_post_meta( $existing->ID, '_wp_page_template', $page['template'] );
@@ -89,7 +118,39 @@ function memento_setup_builtin_pages() {
         ], true );
         $report[ $slug ] = is_wp_error( $id ) ? 'error: ' . $id->get_error_message() : 'created';
     }
+    memento_link_policy_pages();
     return $report;
+}
+
+/**
+ * True for WordPress's auto-generated privacy policy draft that nobody has edited.
+ */
+function memento_is_untouched_default_draft( WP_Post $page ) {
+    if ( (int) get_option( 'wp_page_for_privacy_policy' ) !== (int) $page->ID ) {
+        return false;
+    }
+    // Never edited since creation, and still WordPress's suggested text.
+    return $page->post_modified_gmt === $page->post_date_gmt
+        && false !== strpos( $page->post_content, 'Suggested text:' );
+}
+
+/**
+ * Point WordPress's privacy page and WooCommerce's terms page at the theme's
+ * policy pages, only when those settings are empty or point at a missing page.
+ */
+function memento_link_policy_pages() {
+    $privacy = get_page_by_path( 'privacy-policy' );
+    $current = (int) get_option( 'wp_page_for_privacy_policy' );
+    if ( $privacy && 'publish' === $privacy->post_status && ( ! $current || 'publish' !== get_post_status( $current ) ) ) {
+        update_option( 'wp_page_for_privacy_policy', $privacy->ID );
+    }
+    if ( class_exists( 'WooCommerce' ) ) {
+        $terms   = get_page_by_path( 'terms-of-service' );
+        $current = (int) get_option( 'woocommerce_terms_page_id' );
+        if ( $terms && 'publish' === $terms->post_status && ( ! $current || 'publish' !== get_post_status( $current ) ) ) {
+            update_option( 'woocommerce_terms_page_id', $terms->ID );
+        }
+    }
 }
 
 // On theme activation, and once on the next admin load after this update.
@@ -137,7 +198,7 @@ add_action( 'admin_init', function () {
         return;
     }
 
-    $created = array_keys( array_filter( $report, function ( $r ) { return in_array( $r, [ 'created', 'template_set' ], true ); } ) );
+    $created = array_keys( array_filter( $report, function ( $r ) { return in_array( $r, [ 'created', 'template_set', 'published' ], true ); } ) );
     if ( $created ) {
         set_transient( 'memento_pages_notice', $created, MINUTE_IN_SECONDS * 10 );
     }

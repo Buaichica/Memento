@@ -1,13 +1,10 @@
 <?php
 /**
- * Template Part: Blog index (hero, featured articles, all posts).
+ * Template Part: Blog index (hero + featured articles).
  * Shared by home.php (when /blogs/ is the "Posts page") and page-blogs.php.
  *
- * @param array $args { @type WP_Query $posts_query Posts to list under "All Posts". }
  * @package memento-magnets
  */
-
-$posts_query = ( isset( $args['posts_query'] ) && $args['posts_query'] instanceof WP_Query ) ? $args['posts_query'] : $GLOBALS['wp_query'];
 
 // Dynamically find the 3 blog pages by their template names
 $blog_templates = [
@@ -136,66 +133,6 @@ $blog_meta = [
                 </a>
                 <?php endforeach; ?>
             </div>
-
-        </div>
-    </section>
-
-    <!-- WordPress Posts Loop -->
-    <section class="blog-archive">
-        <div class="container">
-
-            <?php if ( $posts_query->have_posts() ) : ?>
-
-            <h2 style="font-size:var(--text-3xl);margin-bottom:var(--space-8);padding-bottom:var(--space-4);border-bottom:2px solid var(--color-cream);">
-                <?php _e( 'All Posts', 'memento-magnets' ); ?>
-            </h2>
-
-            <div class="blog-grid">
-                <?php while ( $posts_query->have_posts() ) : $posts_query->the_post(); ?>
-                <article id="post-<?php the_ID(); ?>" <?php post_class( 'blog-card fade-in-up' ); ?>>
-
-                    <?php if ( has_post_thumbnail() ) : ?>
-                    <a href="<?php the_permalink(); ?>" class="blog-card__image" aria-hidden="true" tabindex="-1">
-                        <?php the_post_thumbnail( 'memento-blog-card', [ 'loading' => 'lazy', 'alt' => '' ] ); ?>
-                    </a>
-                    <?php endif; ?>
-
-                    <div class="blog-card__body">
-                        <div class="blog-card__category">
-                            <?php $cats = get_the_category(); if ( $cats ) echo esc_html( $cats[0]->name ); ?>
-                        </div>
-                        <h2 class="blog-card__title">
-                            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                        </h2>
-                        <p class="blog-card__excerpt"><?php the_excerpt(); ?></p>
-                        <div class="blog-card__meta">
-                            <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
-                                <?php echo get_the_date(); ?>
-                            </time>
-                            <span>·</span>
-                            <span><?php echo esc_html( memento_reading_time() ); ?></span>
-                        </div>
-                    </div>
-
-                </article>
-                <?php endwhile; wp_reset_postdata(); ?>
-            </div>
-
-            <nav class="pagination" aria-label="<?php esc_attr_e( 'Blog pagination', 'memento-magnets' ); ?>">
-                <?php
-                $pagination_args = [ 'type' => 'list', 'prev_text' => '&larr;', 'next_text' => '&rarr;', 'total' => $posts_query->max_num_pages ];
-                if ( ! $posts_query->is_main_query() ) {
-                    // Page template (/blogs/): paginate with /blogs/page/2/.
-                    $pagination_args['current'] = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
-                    $pagination_args['base']    = trailingslashit( get_permalink() ) . '%_%';
-                    $pagination_args['format']  = 'page/%#%/';
-                }
-                echo paginate_links( $pagination_args );
-                ?>
-            </nav>
-
-            <?php endif; ?>
-            <!-- No "No posts" message here — the featured section above always shows content -->
 
         </div>
     </section>
