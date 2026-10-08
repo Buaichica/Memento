@@ -172,7 +172,7 @@ get_header();
 
                         <p><?php _e( 'Choosing the right photo doesn\'t have to be complicated. Stick to high-resolution originals, shoot in good natural light, make sure your subject is in focus, and think about how it\'ll crop to your chosen magnet size. Do those four things and you\'ll end up with a magnet you\'ll love.', 'memento-magnets' ); ?></p>
 
-                        <p><?php _e( 'If you ever have any doubts, our team is always happy to help. Send us an email at hello@mementomagnets.co.nz and we can advise you before you place your order.', 'memento-magnets' ); ?></p>
+                        <p><?php _e( 'If you ever have any doubts, our team is always happy to help. Send us an email at orders@mementomagnets.com and we can advise you before you place your order.', 'memento-magnets' ); ?></p>
 
                         <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;margin-top:var(--space-6);">
                             <a href="<?php echo esc_url( home_url('/custom-magnets/') ); ?>" class="btn btn--primary btn--lg">

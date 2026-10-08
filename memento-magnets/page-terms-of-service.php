@@ -30,7 +30,7 @@ get_header();
 
                 <h2><?php _e( '1. About Us', 'memento-magnets' ); ?></h2>
                 <p><?php _e( 'Memento Magnets is a New Zealand-based business selling personalised fridge magnets. We operate exclusively within New Zealand.', 'memento-magnets' ); ?></p>
-                <p><?php printf( __( 'Contact: <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'Contact: <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>', 'memento-magnets' ) ); ?></p>
 
                 <h2><?php _e( '2. Orders', 'memento-magnets' ); ?></h2>
                 <p><?php _e( 'By placing an order, you confirm that:', 'memento-magnets' ); ?></p>
@@ -78,7 +78,7 @@ get_header();
                 <p><?php _e( 'These Terms are governed by the laws of New Zealand. Any disputes will be subject to the jurisdiction of the New Zealand courts.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Contact', 'memento-magnets' ); ?></h2>
-                <p><?php printf( __( 'For any questions about these Terms, please contact us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'For any questions about these Terms, please contact us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>.', 'memento-magnets' ) ); ?></p>
 
             </div>
         </div>

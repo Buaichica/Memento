@@ -52,10 +52,10 @@ get_header();
                 <p><?php _e( 'If a parcel is returned to us due to an incorrect or incomplete address, we will contact you to arrange re-delivery. Additional shipping charges may apply.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Lost or Missing Parcels', 'memento-magnets' ); ?></h2>
-                <p><?php printf( __( 'If your parcel has not arrived within the expected timeframe, please contact us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>. We will investigate with our courier and work to resolve the issue as quickly as possible.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'If your parcel has not arrived within the expected timeframe, please contact us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>. We will investigate with our courier and work to resolve the issue as quickly as possible.', 'memento-magnets' ) ); ?></p>
 
                 <h2><?php _e( 'Contact', 'memento-magnets' ); ?></h2>
-                <p><?php printf( __( 'For shipping enquiries, email us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'For shipping enquiries, email us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>.', 'memento-magnets' ) ); ?></p>
 
             </div>
         </div>

@@ -62,13 +62,13 @@ get_header();
                     <li><?php _e( 'Request correction of inaccurate information', 'memento-magnets' ); ?></li>
                     <li><?php _e( 'Ask us to delete your information (subject to legal obligations)', 'memento-magnets' ); ?></li>
                 </ul>
-                <p><?php printf( __( 'To exercise any of these rights, email us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'To exercise any of these rights, email us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>.', 'memento-magnets' ) ); ?></p>
 
                 <h2><?php _e( 'Cookies', 'memento-magnets' ); ?></h2>
                 <p><?php _e( 'Our website uses cookies to improve your browsing experience and remember your cart. You can disable cookies in your browser settings, though some site features may not work as expected.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Contact', 'memento-magnets' ); ?></h2>
-                <p><?php printf( __( 'If you have any questions about this Privacy Policy or how we handle your data, please contact us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'If you have any questions about this Privacy Policy or how we handle your data, please contact us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>.', 'memento-magnets' ) ); ?></p>
 
             </div>
         </div>
