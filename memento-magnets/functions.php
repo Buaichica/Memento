@@ -234,7 +234,7 @@ function memento_get_meta_description() {
         return $excerpt ?: get_bloginfo( 'description' );
     }
     if ( is_archive() ) {
-        return __( 'Read our latest blog posts about personalised magnets, gift ideas, and inspiration for New Zealand and Australia.', 'memento-magnets' );
+        return __( 'Read our latest blog posts about personalised magnets, gift ideas, and inspiration across New Zealand.', 'memento-magnets' );
     }
     return get_bloginfo( 'description' );
 }
@@ -667,6 +667,9 @@ require_once MEMENTO_DIR . '/inc/account.php';
 // Cart page: styling, progress bar, trust row, branded empty state.
 require_once MEMENTO_DIR . '/inc/cart-page.php';
 
+// Checkout: styles and shipping-rate tidy-up (free shipping hides the flat rate).
+require_once MEMENTO_DIR . '/inc/checkout.php';
+
 // Site search: instant suggestions, quick links, cleaner results.
 require_once MEMENTO_DIR . '/inc/search.php';
 
@@ -777,12 +780,12 @@ function memento_local_business_schema() {
         '@context'    => 'https://schema.org',
         '@type'       => 'LocalBusiness',
         'name'        => 'Memento Magnets',
-        'description' => 'Personalised fridge magnets custom-made for homes, gifts and events across New Zealand and Australia.',
+        'description' => 'Personalised fridge magnets custom-made for homes, gifts and events across New Zealand.',
         'url'         => get_site_url(),
         'logo'        => MEMENTO_URI . '/assets/img/logo.png',
         'image'       => MEMENTO_URI . '/assets/img/og-default.jpg',
         'email'       => 'hello@mementomagnets.co.nz',
-        'areaServed'  => [ 'New Zealand', 'Australia' ],
+        'areaServed'  => [ 'New Zealand' ],
         'sameAs'      => [
             'https://www.facebook.com/mementomagnets',
             'https://www.instagram.com/mementomagnets',

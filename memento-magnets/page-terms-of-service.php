@@ -54,7 +54,7 @@ get_header();
                 <p><?php _e( 'All prices are displayed in New Zealand Dollars (NZD) and include GST where applicable. We reserve the right to change prices at any time. The price at the time of your order is the price you will be charged.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( '5. Payment', 'memento-magnets' ); ?></h2>
-                <p><?php _e( 'Payment is required in full at the time of placing your order. We accept credit and debit cards, including Visa and Mastercard, processed securely by our payment provider Stripe. We do not store your card details.', 'memento-magnets' ); ?></p>
+                <p><?php _e( 'Payment is required in full at the time of placing your order. We accept credit and debit cards, including Visa and Mastercard, and Afterpay, processed securely by our payment provider Stripe. We do not store your card details.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( '6. Production & Delivery', 'memento-magnets' ); ?></h2>
                 <p><?php _e( 'We aim to produce and dispatch orders within 2–4 business days. Delivery timeframes are estimates only. Memento Magnets is not liable for delays caused by courier services, rural delivery, or events outside our control.', 'memento-magnets' ); ?></p>

@@ -127,6 +127,7 @@ Plus search icon and WooCommerce mini-cart icon.
 - [ ] **OG image** — Add a real `og-default.jpg` to `assets/img/` for social share previews
 - [ ] **Personalizer** — Check **Required Photos** on each magnet product, add the Dropbox credentials and `MEMENTO_PZ_STORAGE_DIR` to `wp-config.php`, and run the staging checklist in `memento-personalizer/README.md`
 - [ ] **Payments (Stripe)** — Install **WooCommerce Stripe Payment Gateway**, then **WooCommerce → Settings → Payments → Stripe → Connect** your Stripe account (test mode first, then live). Enable only *Credit / Debit Card*; make sure **Cash on delivery**, bank transfer and cheque are disabled. Set **WooCommerce → Settings → General → Store address** to New Zealand.
+- [ ] **Shipping (NZ only)** — **WooCommerce → Settings → General**: *Sell to specific countries* → New Zealand; *Ship to all countries you sell to*. **WooCommerce → Settings → Shipping → Add zone** "New Zealand" (region: New Zealand) with **Flat rate $7.99** and **Free shipping** (requires a minimum order amount of **$50**). The theme hides the $7.99 option automatically when an order qualifies for free shipping.
 - [ ] **hreflang** — Verify that `$_SERVER['HTTP_HOST']` resolves correctly on your production server (NZ + AU hreflang tags are set dynamically in `header.php`)
 
 ---

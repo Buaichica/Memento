@@ -47,7 +47,6 @@
     $current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     ?>
     <link rel="alternate" hreflang="en-NZ" href="<?php echo esc_url( $current_url ); ?>">
-    <link rel="alternate" hreflang="en-AU" href="<?php echo esc_url( $current_url ); ?>">
     <link rel="alternate" hreflang="en"    href="<?php echo esc_url( $current_url ); ?>">
     <link rel="alternate" hreflang="x-default" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 

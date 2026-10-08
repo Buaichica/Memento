@@ -12,7 +12,7 @@
                 </a>
                 <p class="footer-tagline">Capture Every Moment. Keep It Forever.</p>
                 <p style="font-size:var(--text-sm);color:rgba(255,255,255,0.55);margin-bottom:var(--space-5);line-height:1.6;">
-                    <?php _e( 'Personalised fridge magnets custom-made with love, delivering across New Zealand and Australia.', 'memento-magnets' ); ?>
+                    <?php _e( 'Personalised fridge magnets custom-made with love, delivering across New Zealand.', 'memento-magnets' ); ?>
                 </p>
 
                 <!-- Social icons -->
