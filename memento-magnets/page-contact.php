@@ -81,7 +81,7 @@ get_header();
                                     $errors['form'] ?? __( 'Please check the highlighted fields below.', 'memento-magnets' )
                                 );
                                 if ( $state['failed'] ) {
-                                    echo ' <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>';
+                                    echo ' <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>';
                                 }
                                 ?>
                             </div>
@@ -160,7 +160,7 @@ get_header();
                                 </svg>
                                 <div>
                                     <strong><?php _e( 'Email', 'memento-magnets' ); ?></strong><br>
-                                    <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>
+                                    <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>
                                 </div>
                             </li>
                             <li>

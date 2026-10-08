@@ -35,7 +35,7 @@ get_header();
                 <p><?php _e( 'If your order arrives damaged, defective, or significantly different from what you ordered, we will gladly offer you a free reprint or a full refund — no questions asked.', 'memento-magnets' ); ?></p>
                 <p><?php _e( 'To be eligible, please:', 'memento-magnets' ); ?></p>
                 <ol style="list-style:decimal;padding-left:1.5rem;margin-bottom:1rem;color:var(--color-dark-grey);">
-                    <li><?php printf( __( 'Email us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a> within 14 days of receiving your order', 'memento-magnets' ) ); ?></li>
+                    <li><?php printf( __( 'Email us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a> within 14 days of receiving your order', 'memento-magnets' ) ); ?></li>
                     <li><?php _e( 'Include your order number and a clear photo of the issue', 'memento-magnets' ); ?></li>
                 </ol>
                 <p><?php _e( 'We will assess your claim and respond within 1–2 business days with a resolution.', 'memento-magnets' ); ?></p>
@@ -50,7 +50,7 @@ get_header();
                 <p><?php _e( 'Approved refunds are returned to your original payment method within 5–10 business days, depending on your bank or payment provider.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Contact', 'memento-magnets' ); ?></h2>
-                <p><?php printf( __( 'For any refund or return enquiries, please contact us at <a href="mailto:hello@mementomagnets.co.nz">hello@mementomagnets.co.nz</a>.', 'memento-magnets' ) ); ?></p>
+                <p><?php printf( __( 'For any refund or return enquiries, please contact us at <a href="mailto:orders@mementomagnets.com">orders@mementomagnets.com</a>.', 'memento-magnets' ) ); ?></p>
 
             </div>
         </div>

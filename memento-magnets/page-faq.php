@@ -73,7 +73,7 @@ $faq_groups = [
         'items' => [
             [
                 'q' => __( 'What if I\'m not happy with my order?', 'memento-magnets' ),
-                'a' => __( 'We want you to love your magnets! If there\'s a quality issue or we made an error, we\'ll reprint or refund your order — no questions asked. Please email us at hello@mementomagnets.co.nz with a photo of the issue within 14 days of receiving your order.', 'memento-magnets' ),
+                'a' => __( 'We want you to love your magnets! If there\'s a quality issue or we made an error, we\'ll reprint or refund your order — no questions asked. Please email us at orders@mementomagnets.com with a photo of the issue within 14 days of receiving your order.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'Can I return my order if I change my mind?', 'memento-magnets' ),
@@ -81,7 +81,7 @@ $faq_groups = [
             ],
             [
                 'q' => __( 'My order arrived damaged — what should I do?', 'memento-magnets' ),
-                'a' => __( 'We\'re sorry to hear that! Please take a photo of the damaged packaging and product, then email us at hello@mementomagnets.co.nz. We\'ll arrange a reprint or refund as quickly as possible.', 'memento-magnets' ),
+                'a' => __( 'We\'re sorry to hear that! Please take a photo of the damaged packaging and product, then email us at orders@mementomagnets.com. We\'ll arrange a reprint or refund as quickly as possible.', 'memento-magnets' ),
             ],
         ],
     ],

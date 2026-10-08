@@ -787,7 +787,7 @@ function memento_local_business_schema() {
         'url'         => get_site_url(),
         'logo'        => MEMENTO_URI . '/assets/img/logo.png',
         'image'       => MEMENTO_URI . '/assets/img/og-default.jpg',
-        'email'       => 'hello@mementomagnets.co.nz',
+        'email'       => 'orders@mementomagnets.com',
         'areaServed'  => [ 'New Zealand' ],
         'sameAs'      => [
             'https://www.facebook.com/mementomagnets',
