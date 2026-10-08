@@ -1,0 +1,140 @@
+<?php
+/**
+ * Template Part: Blog index (hero + featured articles).
+ * Shared by home.php (when /blogs/ is the "Posts page") and page-blogs.php.
+ *
+ * @package memento-magnets
+ */
+
+// Dynamically find the 3 blog pages by their template names
+$blog_templates = [
+    'page-blog-personalised-magnets-perfect-gift-nz.php',
+    'page-blog-how-to-choose-best-photo-for-custom-magnet.php',
+    'page-blog-custom-magnets-every-occasion-nz.php',
+];
+
+$featured_blogs = [];
+foreach ( $blog_templates as $template ) {
+    $pages = get_pages( [
+        'meta_key'   => '_wp_page_template',
+        'meta_value' => $template,
+        'number'     => 1,
+    ] );
+    if ( ! empty( $pages ) ) {
+        $featured_blogs[] = [
+            'url'     => get_permalink( $pages[0]->ID ),
+            'title'   => $pages[0]->post_title,
+            'excerpt' => wp_trim_words( $pages[0]->post_content, 25, '…' ),
+        ];
+    }
+}
+
+// Fallback: hardcode if pages not found in DB yet
+if ( empty( $featured_blogs ) ) {
+    $featured_blogs = [
+        [
+            'url'     => home_url( '/personalised-magnets-perfect-gift-nz/' ),
+            'title'   => __( '5 Reasons Personalised Photo Magnets Make the Perfect Gift in New Zealand', 'memento-magnets' ),
+            'excerpt' => __( 'Can\'t find a gift that feels truly personal? Discover why thousands of New Zealanders choose custom photo magnets for every occasion.', 'memento-magnets' ),
+        ],
+        [
+            'url'     => home_url( '/how-to-choose-best-photo-for-custom-magnet/' ),
+            'title'   => __( 'How to Choose the Best Photo for Your Custom Fridge Magnet', 'memento-magnets' ),
+            'excerpt' => __( 'The quality of your photo makes all the difference. Learn exactly what to look for — resolution, lighting, cropping and more.', 'memento-magnets' ),
+        ],
+        [
+            'url'     => home_url( '/custom-magnets-for-every-occasion-nz/' ),
+            'title'   => __( 'Custom Photo Magnets for Every Occasion in New Zealand', 'memento-magnets' ),
+            'excerpt' => __( 'Weddings, Christmas, baby showers, graduations — personalised magnets work beautifully as gifts for every milestone in New Zealand.', 'memento-magnets' ),
+        ],
+    ];
+}
+
+$blog_meta = [
+    [ 'emoji' => '🎁', 'category' => 'Gift Ideas',    'read' => '5 min read' ],
+    [ 'emoji' => '📷', 'category' => 'Tips & Advice', 'read' => '6 min read' ],
+    [ 'emoji' => '🎉', 'category' => 'Inspiration',   'read' => '7 min read' ],
+];
+?>
+
+<main id="main" class="site-main" role="main">
+
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <div class="container">
+            <h1><?php _e( 'Blogs', 'memento-magnets' ); ?></h1>
+            <p><?php _e( 'Tips, ideas and inspiration for personalised magnets and thoughtful gifting across New Zealand.', 'memento-magnets' ); ?></p>
+            <nav class="breadcrumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'memento-magnets' ); ?>">
+                <a href="<?php echo home_url('/'); ?>"><?php _e( 'Home', 'memento-magnets' ); ?></a>
+                <span class="sep" aria-hidden="true">/</span>
+                <span class="current" aria-current="page"><?php _e( 'Blogs', 'memento-magnets' ); ?></span>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Featured Blog Posts -->
+    <section class="section section--cream" aria-labelledby="featured-blogs-heading">
+        <div class="container">
+
+            <div class="section-heading">
+                <h2 id="featured-blogs-heading"><?php _e( 'Featured Articles', 'memento-magnets' ); ?></h2>
+                <p><?php _e( 'Our most popular reads — tips, gift ideas, and magnet inspiration for New Zealanders.', 'memento-magnets' ); ?></p>
+            </div>
+
+            <!-- Hero featured card (first blog) -->
+            <div style="margin-bottom:var(--space-6);">
+                <a href="<?php echo esc_url( $featured_blogs[0]['url'] ); ?>"
+                   class="blog-card fade-in-up"
+                   style="display:grid;grid-template-columns:1fr 1fr;gap:0;text-decoration:none;">
+                    <div style="background:var(--gradient-hero);display:flex;align-items:center;justify-content:center;min-height:280px;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
+                        <div style="text-align:center;">
+                            <div style="font-size:5rem;"><?php echo $blog_meta[0]['emoji']; ?></div>
+                            <!-- Replace with a real featured image once available -->
+                        </div>
+                    </div>
+                    <div class="blog-card__body" style="display:flex;flex-direction:column;justify-content:center;padding:var(--space-10);">
+                        <div class="blog-card__category"><?php echo esc_html( $blog_meta[0]['category'] ); ?></div>
+                        <h3 class="blog-card__title" style="font-size:var(--text-2xl);">
+                            <?php echo esc_html( $featured_blogs[0]['title'] ); ?>
+                        </h3>
+                        <p class="blog-card__excerpt"><?php echo esc_html( $featured_blogs[0]['excerpt'] ); ?></p>
+                        <div class="blog-card__meta">
+                            <span><?php echo esc_html( $blog_meta[0]['read'] ); ?></span>
+                        </div>
+                        <div style="margin-top:var(--space-5);">
+                            <span class="btn btn--primary"><?php _e( 'Read Article', 'memento-magnets' ); ?></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Two smaller cards (blogs 2 & 3) -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);">
+                <?php foreach ( [ 1, 2 ] as $i ) :
+                    if ( empty( $featured_blogs[ $i ] ) ) continue;
+                ?>
+                <a href="<?php echo esc_url( $featured_blogs[ $i ]['url'] ); ?>"
+                   class="blog-card fade-in-up"
+                   style="text-decoration:none;">
+                    <div style="background:var(--gradient-hero);display:flex;align-items:center;justify-content:center;min-height:180px;">
+                        <div style="font-size:4rem;"><?php echo $blog_meta[ $i ]['emoji']; ?></div>
+                        <!-- Replace with a real featured image once available -->
+                    </div>
+                    <div class="blog-card__body">
+                        <div class="blog-card__category"><?php echo esc_html( $blog_meta[ $i ]['category'] ); ?></div>
+                        <h3 class="blog-card__title" style="font-size:var(--text-lg);">
+                            <?php echo esc_html( $featured_blogs[ $i ]['title'] ); ?>
+                        </h3>
+                        <p class="blog-card__excerpt"><?php echo esc_html( $featured_blogs[ $i ]['excerpt'] ); ?></p>
+                        <div class="blog-card__meta">
+                            <span><?php echo esc_html( $blog_meta[ $i ]['read'] ); ?></span>
+                        </div>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+
+        </div>
+    </section>
+
+</main>

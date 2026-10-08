@@ -18,15 +18,15 @@ $faq_groups = [
             ],
             [
                 'q' => __( 'What photo formats do you accept?', 'memento-magnets' ),
-                'a' => __( 'We accept JPG, PNG, and HEIC formats. For the best quality results, we recommend uploading a high-resolution image (at least 800x800 pixels). Avoid heavily cropped or digitally zoomed photos.', 'memento-magnets' ),
+                'a' => __( 'We accept JPG, PNG and WebP photos up to 15MB each. iPhone photos are converted to JPG automatically when you choose them on your phone. For the best print quality, use photos at least 600×600 pixels — we\'ll let you know if a photo looks too low-resolution. Avoid heavily cropped or digitally zoomed photos.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'Can I preview my magnet before ordering?', 'memento-magnets' ),
-                'a' => __( 'Yes! After uploading your photo, you\'ll see a preview of your magnet before adding it to cart. If you need adjustments, just re-upload an edited image.', 'memento-magnets' ),
+                'a' => __( 'Yes! After uploading, each photo shows as a square preview of your magnet. Tap Edit to crop, zoom, rotate or replace it — the dashed guide shows the print-safe area so faces and text aren\'t trimmed. You\'ll review all your photos before adding them to your cart.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'What payment methods do you accept?', 'memento-magnets' ),
-                'a' => __( 'We accept Visa, Mastercard, PayPal, and Apple Pay. All transactions are secured with SSL encryption.', 'memento-magnets' ),
+                'a' => __( 'We accept credit and debit cards, including Visa and Mastercard, or you can pay in instalments with Afterpay. Payments are processed securely by Stripe — your card details go straight to Stripe and are never stored on our website.', 'memento-magnets' ),
             ],
         ],
     ],
@@ -35,15 +35,15 @@ $faq_groups = [
         'items' => [
             [
                 'q' => __( 'How long does delivery take?', 'memento-magnets' ),
-                'a' => __( 'New Zealand orders typically arrive within 3–5 business days. Australian orders take 5–10 business days. Express options are available at checkout for faster delivery.', 'memento-magnets' ),
+                'a' => __( 'Each order is made by hand within 2–4 business days, then delivered in 1–3 business days in the North Island or 2–5 business days in the South Island (rural addresses can take 1–2 days longer). See our Shipping Policy for details.', 'memento-magnets' ),
             ],
             [
-                'q' => __( 'Do you ship internationally outside NZ and AU?', 'memento-magnets' ),
-                'a' => __( 'Currently we ship to New Zealand and Australia only. We\'re working on expanding internationally — sign up to our newsletter to be notified when this changes!', 'memento-magnets' ),
+                'q' => __( 'Do you ship outside New Zealand?', 'memento-magnets' ),
+                'a' => __( 'Currently we ship within New Zealand only. We\'d love to expand in future — sign up to our newsletter to be the first to know!', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'How much does shipping cost?', 'memento-magnets' ),
-                'a' => __( 'Shipping is calculated at checkout based on your location and order size. We offer free standard shipping on New Zealand orders over $50 NZD. Flat-rate shipping options are available for Australia.', 'memento-magnets' ),
+                'a' => __( 'Standard shipping anywhere in New Zealand is a flat $7.99 NZD, and it\'s FREE on orders over $50 NZD.', 'memento-magnets' ),
             ],
             [
                 'q' => __( 'Will I receive tracking information?', 'memento-magnets' ),

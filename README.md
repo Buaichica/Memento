@@ -112,7 +112,8 @@ Plus search icon and WooCommerce mini-cart icon.
 3. In WordPress Admin, go to **Appearance → Themes → Add New → Upload Theme**.
 4. Upload the zip file and click **Activate**.
 5. Install and activate the **WooCommerce** and **Contact Form 7** plugins.
-6. Complete the pre-launch checklist below before going live.
+6. Zip and upload `memento-personalizer/` under **Plugins → Add New → Upload**, then activate it. It handles photo uploads, the editor, order files, the production ZIP and Dropbox sync. See [`memento-personalizer/README.md`](memento-personalizer/README.md) for configuration, Dropbox setup and the SiteGround checklist.
+7. Complete the pre-launch checklist below before going live.
 
 ---
 
@@ -124,6 +125,9 @@ Plus search icon and WooCommerce mini-cart icon.
 - [ ] **Contact Form 7** — Update the shortcode ID in `page-contact.php` (around line 24) to match your published CF7 form ID
 - [ ] **Logo** — Add your logo image to `assets/img/` and set it via **Appearance → Customize → Site Identity**
 - [ ] **OG image** — Add a real `og-default.jpg` to `assets/img/` for social share previews
+- [ ] **Personalizer** — Check **Required Photos** on each magnet product, add the Dropbox credentials and `MEMENTO_PZ_STORAGE_DIR` to `wp-config.php`, and run the staging checklist in `memento-personalizer/README.md`
+- [ ] **Payments (Stripe)** — The live site uses **WooPayments** (WooCommerce's Stripe-powered payments) for cards and Afterpay; test it in test mode first, then switch to live. (The local Docker test site uses the *WooCommerce Stripe Payment Gateway* plugin instead.) Make sure **Cash on delivery**, bank transfer and cheque are disabled, and that **PayPal Payments** is disabled unless you want PayPal at checkout. Set **WooCommerce → Settings → General → Store address** to New Zealand.
+- [ ] **Shipping (NZ only)** — **WooCommerce → Settings → General**: *Sell to specific countries* → New Zealand; *Ship to all countries you sell to*. **WooCommerce → Settings → Shipping → Add zone** "New Zealand" (region: New Zealand) with **Flat rate $7.99** and **Free shipping** (requires a minimum order amount of **$50**). The theme hides the $7.99 option automatically when an order qualifies for free shipping.
 - [ ] **hreflang** — Verify that `$_SERVER['HTTP_HOST']` resolves correctly on your production server (NZ + AU hreflang tags are set dynamically in `header.php`)
 
 ---

@@ -42,7 +42,7 @@ get_header();
                 <p><?php _e( 'These are estimates only and are not guaranteed. Delays may occur during peak periods (e.g. Christmas, Valentine\'s Day).', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Shipping Rates', 'memento-magnets' ); ?></h2>
-                <p><?php _e( 'Shipping costs are calculated at checkout based on your location and order size. We offer free standard shipping on orders over $50 NZD.', 'memento-magnets' ); ?></p>
+                <p><?php _e( 'Standard shipping anywhere in New Zealand is a flat $7.99 NZD. Orders over $50 NZD ship free.', 'memento-magnets' ); ?></p>
 
                 <h2><?php _e( 'Tracking', 'memento-magnets' ); ?></h2>
                 <p><?php _e( 'Once your order is dispatched, you will receive a shipping confirmation email with a tracking number so you can follow your parcel.', 'memento-magnets' ); ?></p>
