@@ -13,6 +13,8 @@ class Memento_PZ_Admin_Order_Panel {
 	public static function init() {
 		add_action( 'add_meta_boxes', [ __CLASS__, 'register' ] );
 		add_action( 'woocommerce_process_shop_order_meta', [ __CLASS__, 'save' ] );
+		// After WooCommerce saves the status dropdown (priority 40), so our change isn't overwritten.
+		add_action( 'woocommerce_process_shop_order_meta', [ __CLASS__, 'maybe_complete_shipped' ], 60 );
 
 		// Orders list column (legacy + HPOS).
 		add_filter( 'manage_edit-shop_order_columns', [ __CLASS__, 'add_column' ], 20 );
@@ -46,6 +48,20 @@ class Memento_PZ_Admin_Order_Panel {
 		if ( ! $order ) {
 			return;
 		}
+		wp_nonce_field( 'memento_pz_save_production', 'memento_pz_production_nonce' );
+		?>
+		<p>
+			<label for="memento-pz-tracking"><strong><?php esc_html_e( 'NZ Post tracking number', 'memento-personalizer' ); ?></strong></label><br>
+			<input type="text" id="memento-pz-tracking" name="memento_pz_tracking_number" value="<?php echo esc_attr( Memento_PZ_Shipping_Tracking::number( $order ) ); ?>" maxlength="40" style="width:260px;text-transform:uppercase" autocomplete="off">
+			<?php
+			$tracking = Memento_PZ_Shipping_Tracking::number( $order );
+			if ( $tracking ) {
+				echo ' <a href="' . esc_url( Memento_PZ_Shipping_Tracking::url( $tracking ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Track', 'memento-personalizer' ) . '</a>';
+			}
+			?>
+			<br><span class="description"><?php esc_html_e( 'Paste the tracking number, set Production status to Shipped and click Update: the order is marked Completed and the customer is emailed the tracking link.', 'memento-personalizer' ); ?></span>
+		</p>
+		<?php
 		Memento_PZ_Order_Files::finalize( $order );
 		$items = Memento_PZ_Order_Files::production_items( $order );
 
@@ -81,7 +97,6 @@ class Memento_PZ_Admin_Order_Panel {
 						<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current, $key ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
-				<?php wp_nonce_field( 'memento_pz_save_production', 'memento_pz_production_nonce' ); ?>
 			</label>
 			<div>
 				<strong><?php esc_html_e( 'Photos', 'memento-personalizer' ); ?></strong><br>
@@ -205,10 +220,30 @@ class Memento_PZ_Admin_Order_Panel {
 		if ( ! current_user_can( 'edit_shop_orders' ) ) {
 			return;
 		}
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		if ( isset( $_POST['memento_pz_tracking_number'] ) ) {
+			$tracking = Memento_PZ_Shipping_Tracking::sanitize( wp_unslash( $_POST['memento_pz_tracking_number'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			if ( $tracking !== Memento_PZ_Shipping_Tracking::number( $order ) ) {
+				$order->update_meta_data( Memento_PZ_Shipping_Tracking::META, $tracking );
+				$order->add_order_note(
+					'' === $tracking
+						? __( 'NZ Post tracking number removed.', 'memento-personalizer' )
+						/* translators: %s: tracking number */
+						: sprintf( __( 'NZ Post tracking number set: %s', 'memento-personalizer' ), $tracking ),
+					false,
+					true
+				);
+				$order->save();
+			}
+		}
+
 		$status   = sanitize_key( wp_unslash( $_POST['memento_pz_production_status'] ?? '' ) );
 		$statuses = Memento_PZ_Order_Files::production_statuses();
-		$order    = wc_get_order( $order_id );
-		if ( ! $order || ! isset( $statuses[ $status ] ) ) {
+		if ( ! isset( $statuses[ $status ] ) ) {
 			return;
 		}
 		$previous = $order->get_meta( '_memento_pz_production_status' );
@@ -217,6 +252,29 @@ class Memento_PZ_Admin_Order_Panel {
 			/* translators: %s: production status */
 			$order->add_order_note( sprintf( __( 'Production status changed to %s.', 'memento-personalizer' ), $statuses[ $status ] ), false, true );
 			$order->save();
+		}
+	}
+
+	/**
+	 * Shipped + tracking number on a Processing order → Completed, which sends
+	 * WooCommerce's "Completed order" email (with the tracking block added by
+	 * Memento_PZ_Shipping_Tracking).
+	 */
+	public static function maybe_complete_shipped( $order_id ) {
+		if ( ! isset( $_POST['memento_pz_production_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['memento_pz_production_nonce'] ), 'memento_pz_save_production' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return;
+		}
+		$order = wc_get_order( $order_id ); // Fresh copy: WooCommerce has just saved the status.
+		if ( ! $order || ! $order->has_status( 'processing' ) || ! Memento_PZ_Shipping_Tracking::number( $order ) ) {
+			return;
+		}
+		// Orders without photo items have no status select; tracking alone is enough there.
+		$shipped = 'shipped' === $order->get_meta( '_memento_pz_production_status' ) || ! isset( $_POST['memento_pz_production_status'] );
+		if ( $shipped ) {
+			$order->update_status( 'completed', __( 'Shipped with NZ Post.', 'memento-personalizer' ) );
 		}
 	}
 
@@ -239,8 +297,9 @@ class Memento_PZ_Admin_Order_Panel {
 			return;
 		}
 		$order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order( $post_or_order );
+		$tracking = $order ? Memento_PZ_Shipping_Tracking::number( $order ) : '';
 		if ( ! $order || ! $order->get_meta( '_memento_pz_has_photos' ) ) {
-			echo '–';
+			echo $tracking ? '<span style="color:#555">' . esc_html( $tracking ) . '</span>' : '–';
 			return;
 		}
 		$statuses = Memento_PZ_Order_Files::production_statuses();
@@ -249,6 +308,9 @@ class Memento_PZ_Admin_Order_Panel {
 		$dropbox = Memento_PZ_Dropbox_Sync::status( $order );
 		if ( in_array( $dropbox, [ 'failed', 'not_configured' ], true ) ) {
 			echo '<br><span style="color:#8a1f1f">' . esc_html__( 'Dropbox failed', 'memento-personalizer' ) . '</span>';
+		}
+		if ( $tracking ) {
+			echo '<br><span style="color:#555">' . esc_html( $tracking ) . '</span>';
 		}
 	}
 

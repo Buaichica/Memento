@@ -38,6 +38,7 @@ require_once MEMENTO_PZ_DIR . 'includes/class-dropbox-client.php';
 require_once MEMENTO_PZ_DIR . 'includes/class-dropbox-sync.php';
 require_once MEMENTO_PZ_DIR . 'includes/class-zip-export.php';
 require_once MEMENTO_PZ_DIR . 'includes/class-admin-order-panel.php';
+require_once MEMENTO_PZ_DIR . 'includes/class-shipping-tracking.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once MEMENTO_PZ_DIR . 'includes/class-cli.php';
@@ -73,6 +74,7 @@ add_action( 'plugins_loaded', function () {
 	Memento_PZ_Dropbox_Sync::init();
 	Memento_PZ_Zip_Export::init();
 	Memento_PZ_Admin_Order_Panel::init();
+	Memento_PZ_Shipping_Tracking::init();
 } );
 
 /**

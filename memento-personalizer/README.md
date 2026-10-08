@@ -101,7 +101,9 @@ Each order screen has a **Production — Customer Photos** panel with:
 - Dropbox status, last attempt, attempt count, error summary, and a Retry/Re-sync button
 - a **Download Production ZIP** button, which produces `MM-{order}.zip` containing `manifest.json`, `order.txt` and `item-01/01.jpg …`
 
-The orders list also has a **Production** column.
+The orders list also has a **Production** column (with the tracking number once set).
+
+**Shipping an order (NZ Post).** On the order screen, paste the NZ Post tracking number into **NZ Post tracking number**, set **Production status** to **Shipped** and click **Update**. A *Processing* order then becomes *Completed*, and WooCommerce's "Completed order" email goes to the customer with the subject "Your Memento Magnets order is on its way", the tracking number and a **Track your parcel** link (`https://www.nzpost.co.nz/tools/tracking/item/{number}`). The same tracking box shows on the customer's My Account order page. The number is stored in order meta `_memento_tracking_number`; changes are logged as order notes.
 
 ## 6. Data model and migration
 

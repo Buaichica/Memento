@@ -2,6 +2,10 @@
    CHECKOUT — loaded only on the checkout (inc/checkout.php)
    ============================================================ */
 
+/* Wider than page.php's 860px reading column, so the order summary isn't cramped (same as cart.css). */
+.woocommerce-checkout article.section > .container { max-width: 1120px !important; }
+.wp-block-woocommerce-checkout .wc-block-components-totals-footer-item-tax { white-space: normal; }
+
 /* Shipping + payment options as rounded cards; selected one outlined in pink */
 .wp-block-woocommerce-checkout .wc-block-components-radio-control--highlight-checked,
 .wp-block-woocommerce-checkout .wc-block-components-radio-control-accordion-option {
