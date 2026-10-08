@@ -238,6 +238,7 @@
 <?php
 /**
  * Fallback nav when no menu is assigned.
+ * FAQ and Contact Us live in the footer only.
  */
 function memento_fallback_nav() {
     $shop  = class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
@@ -245,7 +246,6 @@ function memento_fallback_nav() {
         [ home_url( '/' ), __( 'Home', 'memento-magnets' ), is_front_page() ],
         [ $shop, __( 'Products', 'memento-magnets' ), function_exists( 'is_woocommerce' ) && ( is_shop() || is_product() || is_product_taxonomy() ) ],
         [ home_url( '/blogs/' ), __( 'Blogs', 'memento-magnets' ), ! is_front_page() && ( is_page( 'blogs' ) || is_home() || is_singular( 'post' ) || is_page_template( [ 'page-blog-personalised-magnets-perfect-gift-nz.php', 'page-blog-how-to-choose-best-photo-for-custom-magnet.php', 'page-blog-custom-magnets-every-occasion-nz.php' ] ) ) ],
-        [ home_url( '/faq/' ), __( 'FAQ', 'memento-magnets' ), is_page( 'faq' ) ],
     ];
     echo '<ul class="nav-list" role="list">';
     foreach ( $items as list( $url, $label, $current ) ) {

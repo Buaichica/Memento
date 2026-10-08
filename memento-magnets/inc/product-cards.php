@@ -189,6 +189,11 @@ add_filter( 'woocommerce_single_product_image_thumbnail_html', function ( $html,
     return '<div class="woocommerce-product-gallery__image--placeholder mm-single-visual">' . memento_magnet_tiles_visual( $count, 'mm-tiles--large' ) . '</div>';
 }, 10, 2 );
 
+// Zoom/lightbox are off, so drop the link around product photos — clicking shouldn't open the raw image file.
+add_filter( 'woocommerce_single_product_image_thumbnail_html', function ( $html ) {
+    return preg_replace( '#<a\b[^>]*>(.*?)</a>#s', '$1', $html );
+}, 20 );
+
 /* ── Single product page: related products as shared cards ───── */
 
 // Replace WooCommerce's default related/upsell loops (grey placeholders, different design).

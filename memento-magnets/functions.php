@@ -59,8 +59,7 @@ function memento_setup() {
 
     // WooCommerce support
     add_theme_support( 'woocommerce' );
-    add_theme_support( 'wc-product-gallery-zoom' );
-    add_theme_support( 'wc-product-gallery-lightbox' );
+    // No hover zoom or full-screen lightbox on product images; keep the slider for multi-image galleries.
     add_theme_support( 'wc-product-gallery-slider' );
 
     // Image sizes
@@ -956,3 +955,18 @@ add_action( 'customize_register', function ( WP_Customize_Manager $wp_customize 
         $wp_customize->remove_control( $control );
     }
 }, 30 );
+
+/**
+ * FAQ and Contact Us are footer-only links: drop them from the header menu even if
+ * they're added to the menu assigned in WP Admin → Appearance → Menus.
+ */
+add_filter( 'wp_nav_menu_objects', function ( $items, $args ) {
+    if ( 'primary' !== ( $args->theme_location ?? '' ) ) {
+        return $items;
+    }
+    return array_filter( $items, function ( $item ) {
+        $slug = trim( (string) wp_parse_url( $item->url, PHP_URL_PATH ), '/' );
+        $slug = basename( $slug );
+        return ! in_array( $slug, [ 'faq', 'faqs', 'contact', 'contact-us' ], true );
+    } );
+}, 10, 2 );
