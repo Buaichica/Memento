@@ -655,6 +655,9 @@ add_action( 'wp_head', function () {
 // Shared product cards (Products page + homepage collection), pack-size ordering.
 require_once MEMENTO_DIR . '/inc/product-cards.php';
 
+// Default product photos for the 3/6/9/12 packs (only fills products without an image).
+require_once MEMENTO_DIR . '/inc/product-images.php';
+
 // Creates the Blogs, FAQ and blog-article pages if they're missing (prevents 404s).
 require_once MEMENTO_DIR . '/inc/page-setup.php';
 
@@ -724,7 +727,8 @@ add_action( 'woocommerce_product_thumbnails', function () {
     global $product;
     if ( ! $product ) return;
     if ( ! empty( $product->get_gallery_image_ids() ) ) return; // skip if real gallery exists
-    if ( ! $product->get_image_id() && memento_card_pack_count( $product ) ) return; // magnet-tile visual already shown
+    if ( $product->get_image_id() ) return;           // a real product photo is shown — no fake thumbnails
+    if ( memento_card_pack_count( $product ) ) return; // magnet-tile visual already shown
     ?>
     <div class="memento-thumb-placeholders" aria-hidden="true">
         <?php for ( $i = 0; $i < 3; $i++ ) : ?>

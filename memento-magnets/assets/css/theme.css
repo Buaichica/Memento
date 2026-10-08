@@ -574,6 +574,38 @@ html.search-open { overflow: hidden; }
 /* Cards on the results page appear after load, don't wait for the scroll fade-in. */
 .search-results .fade-in-up { opacity: 1; transform: none; }
 
+/* Single product: WooCommerce's full-screen zoom button (its default styles are
+   disabled by the theme, so without this it renders as a bare emoji). */
+.woocommerce-product-gallery { position: relative; }
+.woocommerce-product-gallery__trigger {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 4px 14px rgba(26,26,26,.15);
+    font-size: 0; /* hide the emoji/text glyph */
+    text-decoration: none;
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.woocommerce-product-gallery__trigger > *:not(.screen-reader-text) { display: none; }
+.woocommerce-product-gallery__trigger::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: var(--color-hot-pink);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5M11 8v6M8 11h6'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5M11 8v6M8 11h6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.woocommerce-product-gallery__trigger:hover,
+.woocommerce-product-gallery__trigger:focus-visible { transform: scale(1.06); background: #fff; outline: none; }
+
 /* ============================================================
    HERO SECTION
    ============================================================ */
@@ -1638,6 +1670,16 @@ html.search-open { overflow: hidden; }
 .post-content img {
     border-radius: var(--radius-lg);
     margin: var(--space-6) 0;
+}
+
+/* That spacing is for images in written content only. WooCommerce's cart, checkout
+   and account components (payment logos, product thumbnails, photo tiles) sit inside
+   .post-content too and must keep their own layout. */
+.post-content .woocommerce img,
+.post-content [class*="wp-block-woocommerce"] img,
+.post-content [class*="wc-block-"] img {
+    margin: 0;
+    border-radius: 0;
 }
 
 .post-content a {
