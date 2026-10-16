@@ -54,9 +54,9 @@
     // ── Open Graph ────────────────────────────────────────────────
     $og_title = is_singular() ? get_the_title() : get_bloginfo( 'name' );
     $og_desc  = $meta_desc;
-    $og_image = memento_get_og_image();
+    list( $og_image, $og_image_w, $og_image_h, $og_image_alt ) = memento_get_og_image();
     $og_url   = $canonical ?: home_url( '/' );
-    $og_type  = is_singular( 'post' ) ? 'article' : 'website';
+    $og_type  = is_singular( 'post' ) ? 'article' : ( function_exists( 'is_product' ) && is_product() ? 'product' : 'website' );
     ?>
     <meta property="og:type"        content="<?php echo esc_attr( $og_type ); ?>">
     <meta property="og:site_name"   content="<?php bloginfo( 'name' ); ?>">
@@ -65,8 +65,9 @@
     <meta property="og:url"         content="<?php echo esc_url( $og_url ); ?>">
     <?php if ( $og_image ) : ?>
     <meta property="og:image"       content="<?php echo esc_url( $og_image ); ?>">
-    <meta property="og:image:width"  content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image:width"  content="<?php echo (int) $og_image_w; ?>">
+    <meta property="og:image:height" content="<?php echo (int) $og_image_h; ?>">
+    <meta property="og:image:alt"    content="<?php echo esc_attr( $og_image_alt ); ?>">
     <?php endif; ?>
     <?php if ( is_singular( 'post' ) ) : ?>
     <meta property="article:published_time" content="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
@@ -82,6 +83,7 @@
     <meta name="twitter:description" content="<?php echo esc_attr( $og_desc ); ?>">
     <?php if ( $og_image ) : ?>
     <meta name="twitter:image"       content="<?php echo esc_url( $og_image ); ?>">
+    <meta name="twitter:image:alt"   content="<?php echo esc_attr( $og_image_alt ); ?>">
     <?php endif; ?>
 
     <?php wp_head(); ?>

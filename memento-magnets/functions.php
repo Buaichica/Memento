@@ -238,12 +238,21 @@ function memento_get_meta_description() {
     return get_bloginfo( 'description' );
 }
 
+/**
+ * Share image for Open Graph / Twitter: [ url, width, height, alt ].
+ * Uses the uncropped featured image (product photos are square, and a 2:1 crop
+ * would cut the magnets off); falls back to the 1200×630 og-default.jpg.
+ */
 function memento_get_og_image() {
     if ( is_singular() && has_post_thumbnail() ) {
-        $img = wp_get_attachment_image_src( get_post_thumbnail_id(), 'memento-hero' );
-        return $img ? $img[0] : '';
+        $id  = get_post_thumbnail_id();
+        $img = wp_get_attachment_image_src( $id, 'large' );
+        if ( $img ) {
+            $alt = trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+            return [ $img[0], (int) $img[1], (int) $img[2], $alt ?: get_the_title() ];
+        }
     }
-    return MEMENTO_URI . '/assets/img/og-default.jpg';
+    return [ MEMENTO_URI . '/assets/img/og-default.jpg', 1200, 630, __( 'Personalised photo fridge magnets by Memento Magnets, New Zealand', 'memento-magnets' ) ];
 }
 
 // ============================================================
