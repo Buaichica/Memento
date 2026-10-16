@@ -13,12 +13,36 @@ $blog_templates = [
     'page-blog-custom-magnets-every-occasion-nz.php',
 ];
 
+// Fallback content, used for any article page not found in the DB.
+$fallback_blogs = [
+    [
+        'url'     => home_url( '/personalised-magnets-perfect-gift-nz/' ),
+        'title'   => __( '5 Reasons Personalised Photo Magnets Make the Perfect Gift in New Zealand', 'memento-magnets' ),
+        'excerpt' => __( 'Can\'t find a gift that feels truly personal? Discover why thousands of New Zealanders choose custom photo magnets for every occasion.', 'memento-magnets' ),
+    ],
+    [
+        'url'     => home_url( '/how-to-choose-best-photo-for-custom-magnet/' ),
+        'title'   => __( 'How to Choose the Best Photo for Your Custom Fridge Magnet', 'memento-magnets' ),
+        'excerpt' => __( 'The quality of your photo makes all the difference. Learn exactly what to look for — resolution, lighting, cropping and more.', 'memento-magnets' ),
+    ],
+    [
+        'url'     => home_url( '/custom-magnets-for-every-occasion-nz/' ),
+        'title'   => __( 'Custom Photo Magnets for Every Occasion in New Zealand', 'memento-magnets' ),
+        'excerpt' => __( 'Weddings, Christmas, baby showers, graduations — personalised magnets work beautifully as gifts for every milestone in New Zealand.', 'memento-magnets' ),
+    ],
+];
+
 $featured_blogs = [];
-foreach ( $blog_templates as $template ) {
+foreach ( $blog_templates as $i => $template ) {
+    // hierarchical => 0: by default get_pages() drops pages whose parent isn't in the
+    // result (e.g. an article under /blogs/), which made a card disappear.
+    // Top-level copies first, so the links match inc/page-setup.php and search.
     $pages = get_pages( [
-        'meta_key'   => '_wp_page_template',
-        'meta_value' => $template,
-        'number'     => 1,
+        'meta_key'     => '_wp_page_template',
+        'meta_value'   => $template,
+        'number'       => 1,
+        'hierarchical' => 0,
+        'sort_column'  => 'post_parent, ID',
     ] );
     if ( ! empty( $pages ) ) {
         $featured_blogs[] = [
@@ -26,28 +50,9 @@ foreach ( $blog_templates as $template ) {
             'title'   => $pages[0]->post_title,
             'excerpt' => wp_trim_words( $pages[0]->post_content, 25, '…' ),
         ];
+    } else {
+        $featured_blogs[] = $fallback_blogs[ $i ];
     }
-}
-
-// Fallback: hardcode if pages not found in DB yet
-if ( empty( $featured_blogs ) ) {
-    $featured_blogs = [
-        [
-            'url'     => home_url( '/personalised-magnets-perfect-gift-nz/' ),
-            'title'   => __( '5 Reasons Personalised Photo Magnets Make the Perfect Gift in New Zealand', 'memento-magnets' ),
-            'excerpt' => __( 'Can\'t find a gift that feels truly personal? Discover why thousands of New Zealanders choose custom photo magnets for every occasion.', 'memento-magnets' ),
-        ],
-        [
-            'url'     => home_url( '/how-to-choose-best-photo-for-custom-magnet/' ),
-            'title'   => __( 'How to Choose the Best Photo for Your Custom Fridge Magnet', 'memento-magnets' ),
-            'excerpt' => __( 'The quality of your photo makes all the difference. Learn exactly what to look for — resolution, lighting, cropping and more.', 'memento-magnets' ),
-        ],
-        [
-            'url'     => home_url( '/custom-magnets-for-every-occasion-nz/' ),
-            'title'   => __( 'Custom Photo Magnets for Every Occasion in New Zealand', 'memento-magnets' ),
-            'excerpt' => __( 'Weddings, Christmas, baby showers, graduations — personalised magnets work beautifully as gifts for every milestone in New Zealand.', 'memento-magnets' ),
-        ],
-    ];
 }
 
 $blog_meta = [
